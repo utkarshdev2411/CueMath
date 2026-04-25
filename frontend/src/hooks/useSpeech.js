@@ -71,7 +71,11 @@ export function useSpeech() {
 
     onTranscriptReadyRef.current = onTranscriptReady || null;
     onSilenceRef.current = onSilence || null;
-    networkRetryAttemptedRef.current = false;
+    // Only reset the retry flag when this is a fresh listen cycle, not when
+    // startListening is called recursively from the network-error retry handler.
+    if (!networkRetryAttemptedRef.current) {
+      networkRetryAttemptedRef.current = false;
+    }
 
     // Always destroy any previous instance — non-continuous mode requires fresh.
     if (recognitionRef.current) {
@@ -119,16 +123,17 @@ export function useSpeech() {
     recognition.onerror = (event) => {
       const code = event.error;
       if (code === "network") {
-        // Transient Chrome→Google transcription error. Retry once after 1s.
+        // Chrome fired a transient Google-server error. The current instance is
+        // now dead — calling .start() on it throws InvalidStateError. We must
+        // create a completely fresh instance for the retry (per known-gotchas.md).
         if (!networkRetryAttemptedRef.current) {
           networkRetryAttemptedRef.current = true;
           setTimeout(() => {
-            try {
-              recognition.start();
-            } catch {
-              setError("Network error while listening. Please try again.");
-              setIsListening(false);
-            }
+            // Only retry if the hook is still mounted and listening is expected.
+            startListening({
+              onTranscriptReady: onTranscriptReadyRef.current,
+              onSilence: onSilenceRef.current,
+            });
           }, NETWORK_RETRY_DELAY_MS);
           return;
         }

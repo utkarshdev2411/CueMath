@@ -1,0 +1,154 @@
+.report {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+  background: var(--bg);
+}
+
+.report-empty {
+  max-width: 500px;
+  margin: 80px auto;
+  text-align: center;
+  padding: 24px;
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+
+.report-title-eyebrow {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.report-header h1 {
+  font-size: 32px;
+  margin: 0;
+}
+
+.report-date {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.report-print {
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+.report-verdict {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 36px;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.verdict-badge {
+  padding: 10px 28px;
+  border-radius: 999px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.verdict-pass {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.verdict-review {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.verdict-reject {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.verdict-score {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.verdict-score-num {
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.verdict-score-den {
+  font-size: 18px;
+  color: var(--text-muted);
+}
+
+.report-summary,
+.report-rubrics,
+.report-flags,
+.report-recommendation {
+  margin-bottom: 32px;
+}
+
+.report-summary p,
+.report-recommendation p {
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 0;
+}
+
+.rubric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .rubric-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.report-flags ul {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-radius: 12px;
+  padding: 16px 16px 16px 36px;
+  margin: 0;
+}
+
+.report-flags li {
+  margin: 6px 0;
+}
+
+@media print {
+  .report-print {
+    display: none;
+  }
+
+  .report {
+    padding: 0;
+  }
+
+  body {
+    background: #fff;
+  }
+}

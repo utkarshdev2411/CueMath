@@ -1,4 +1,3 @@
-from typing import Optional
 from pydantic import BaseModel
 
 
@@ -24,7 +23,7 @@ class DimensionScore(BaseModel):
 
 class AssessRequest(BaseModel):
     transcript: list[Message]
-    candidate_name: Optional[str] = "Candidate"
+    candidate_name: str = "Candidate"
 
 
 class AssessResponse(BaseModel):

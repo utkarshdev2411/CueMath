@@ -2,6 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const WELCOME_VOICE_LANG = "en-US";
 const NETWORK_RETRY_DELAY_MS = 1000;
+// How long (ms) of silence AFTER speech before submitting the answer.
+const SUBMIT_SILENCE_MS = 4000;
+// How long (ms) of total silence at the START before prompting the user to speak.
+const PROMPT_SILENCE_MS = 8000;
 
 function getSpeechRecognition() {
   if (typeof window === "undefined") return null;
@@ -20,7 +24,12 @@ export function useSpeech() {
   const recognitionRef = useRef(null);
   const onTranscriptReadyRef = useRef(null);
   const onSilenceRef = useRef(null);
-  const networkRetryAttemptedRef = useRef(false);
+  // Counts consecutive network errors across ALL startListening() calls.
+  const globalNetworkFailuresRef = useRef(0);
+  // Silence timer — fires SUBMIT_SILENCE_MS after the last speech to submit.
+  const silenceTimerRef = useRef(null);
+  // Prompt timer — fires PROMPT_SILENCE_MS if the user says nothing at all.
+  const promptTimerRef = useRef(null);
   const voicesRef = useRef([]);
 
   // Detect browser support once on mount.
@@ -48,6 +57,8 @@ export function useSpeech() {
   // Cleanup: cancel any in-flight recognition / speech on unmount.
   useEffect(() => {
     return () => {
+      clearTimeout(silenceTimerRef.current);
+      clearTimeout(promptTimerRef.current);
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
@@ -71,11 +82,9 @@ export function useSpeech() {
 
     onTranscriptReadyRef.current = onTranscriptReady || null;
     onSilenceRef.current = onSilence || null;
-    // Only reset the retry flag when this is a fresh listen cycle, not when
-    // startListening is called recursively from the network-error retry handler.
-    if (!networkRetryAttemptedRef.current) {
-      networkRetryAttemptedRef.current = false;
-    }
+    // NOTE: do NOT reset globalNetworkFailuresRef here — it must survive
+    // across calls to detect the infinite-cycling scenario on Ubuntu/Linux.
+    // It is only reset when a successful transcript is received.
 
     // Always destroy any previous instance — non-continuous mode requires fresh.
     if (recognitionRef.current) {
@@ -88,57 +97,117 @@ export function useSpeech() {
     }
 
     const recognition = new SR();
-    recognition.continuous = false;
+    // continuous=true: Chrome will NOT auto-stop on short pauses.
+    // We control submission ourselves via a silence timer (SUBMIT_SILENCE_MS).
+    // This prevents premature submission when the candidate pauses to breathe
+    // or think mid-answer.
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-US";
+
+    // Accumulates all isFinal chunks within one listening session.
+    let finalBuffer = "";
+    // Flag to prevent double-submission if both timer and onend fire.
+    let submitted = false;
+
+    const submitBuffer = (recognition) => {
+      if (submitted) return;
+      submitted = true;
+      clearTimeout(silenceTimerRef.current);
+      const text = finalBuffer.trim();
+      recognition.abort(); // Stop the continuous session cleanly.
+      if (text) {
+        globalNetworkFailuresRef.current = 0;
+        setTranscript(text);
+        if (onTranscriptReadyRef.current) onTranscriptReadyRef.current(text);
+      } else {
+        // Nothing was said — treat as silence.
+        if (onSilenceRef.current) onSilenceRef.current();
+      }
+    };
+
+    const scheduleSilenceSubmit = () => {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = setTimeout(() => submitBuffer(recognition), SUBMIT_SILENCE_MS);
+    };
 
     recognition.onstart = () => {
       setIsListening(true);
       setTranscript("");
       setError(null);
+      finalBuffer = "";
+      submitted = false;
+      // Start the prompt timer. If the candidate says nothing within
+      // PROMPT_SILENCE_MS we abort and surface onSilence so useInterview
+      // can speak a nudge ("I'm listening — go ahead whenever you're ready.").
+      clearTimeout(promptTimerRef.current);
+      promptTimerRef.current = setTimeout(() => {
+        if (!submitted) {
+          submitted = true;
+          clearTimeout(silenceTimerRef.current);
+          recognition.abort();
+          if (onSilenceRef.current) onSilenceRef.current();
+        }
+      }, PROMPT_SILENCE_MS);
     };
 
     recognition.onresult = (event) => {
       let interim = "";
-      let final = "";
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
         const result = event.results[i];
         if (result.isFinal) {
-          final += result[0].transcript;
+          finalBuffer += result[0].transcript;
         } else {
           interim += result[0].transcript;
         }
       }
-      if (final) {
-        const trimmed = final.trim();
-        setTranscript(trimmed);
-        if (onTranscriptReadyRef.current) {
-          onTranscriptReadyRef.current(trimmed);
-        }
-      } else if (interim) {
-        setTranscript(interim);
-      }
+      // Show the live running transcript (committed + current interim).
+      setTranscript((finalBuffer + interim).trim());
+      // User has started speaking — cancel the "please speak" prompt timer.
+      clearTimeout(promptTimerRef.current);
+      // Reset the silence countdown — candidate is still speaking.
+      scheduleSilenceSubmit();
     };
 
     recognition.onerror = (event) => {
       const code = event.error;
       if (code === "network") {
-        // Chrome fired a transient Google-server error. The current instance is
-        // now dead — calling .start() on it throws InvalidStateError. We must
-        // create a completely fresh instance for the retry (per known-gotchas.md).
-        if (!networkRetryAttemptedRef.current) {
-          networkRetryAttemptedRef.current = true;
+        // Chrome's speech recognition requires a live connection to
+        // speech.googleapis.com. On Ubuntu/Linux this frequently fails due to
+        // Chrome audio sandbox or network routing issues.
+        //
+        // Strategy: allow up to 2 silent retries (fresh recognition instance
+        // each time). After 4 total consecutive failures across ALL calls we
+        // stop cycling and surface an actionable error — otherwise the mic
+        // flicks on/off in an infinite loop.
+        globalNetworkFailuresRef.current += 1;
+        const failures = globalNetworkFailuresRef.current;
+
+        if (failures <= 2) {
+          // Silent retry with a fresh recognition instance after a short delay.
           setTimeout(() => {
-            // Only retry if the hook is still mounted and listening is expected.
             startListening({
               onTranscriptReady: onTranscriptReadyRef.current,
               onSilence: onSilenceRef.current,
             });
-          }, NETWORK_RETRY_DELAY_MS);
+          }, NETWORK_RETRY_DELAY_MS * failures); // backoff: 1s, 2s
           return;
         }
-        setError("Network error while listening. Please try again.");
+        if (failures <= 4) {
+          // Still failing — give the onSilence loop one more chance but with
+          // a longer cooldown so the user at least sees a pause.
+          setIsListening(false);
+          setTimeout(() => {
+            if (onSilenceRef.current) onSilenceRef.current();
+          }, 2000);
+          return;
+        }
+        // 5+ consecutive failures — this is a structural problem (Ubuntu audio
+        // sandbox, no access to speech.googleapis.com, etc). Stop cycling.
         setIsListening(false);
+        setError(
+          "Speech recognition can't connect. On Linux: open chrome://settings/content/microphone and ensure Chrome has mic access, then refresh. You can also try: Settings → Sound → check input device."
+        );
         return;
       }
       if (code === "no-speech") {
@@ -161,7 +230,11 @@ export function useSpeech() {
       setIsListening(false);
     };
 
+    // With continuous=true, onend only fires when we call abort().
+    // It just cleans up the isListening flag.
     recognition.onend = () => {
+      clearTimeout(silenceTimerRef.current);
+      clearTimeout(promptTimerRef.current);
       setIsListening(false);
     };
 

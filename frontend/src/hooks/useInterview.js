@@ -76,6 +76,10 @@ export function useInterview() {
   const stateRef = useRef(state);
   stateRef.current = state;
 
+  // Counts consecutive "no speech" silence callbacks without a real answer.
+  // Drives the TTS nudge prompt so Priya asks the candidate to speak.
+  const silenceStreakRef = useRef(0);
+
   // Surface speech-layer errors to the interview state.
   useEffect(() => {
     if (speech.error) {
@@ -90,13 +94,29 @@ export function useInterview() {
     speech.startListening({
       onTranscriptReady: (finalText) => {
         if (!finalText) return;
+        silenceStreakRef.current = 0; // Candidate spoke — reset the streak.
         handleCandidateUtterance(finalText);
       },
       onSilence: () => {
-        // Candidate paused too long — restart listening. No state change needed;
-        // startListening already sets phase/isListening, but we're already in
-        // LISTENING, so just kick off a fresh recognition instance.
-        listenForCandidate();
+        // The candidate said nothing for PROMPT_SILENCE_MS.
+        // Speak a gentle nudge before restarting the mic so Priya
+        // prompts them verbally. mic is already stopped at this point
+        // (recognition was aborted), so no feedback risk.
+        silenceStreakRef.current += 1;
+        const streak = silenceStreakRef.current;
+
+        const nudge =
+          streak === 1
+            ? "I'm listening — go ahead whenever you're ready."
+            : streak === 2
+            ? "Take your time. I'm still here whenever you'd like to answer."
+            : null; // 3+ — silent restart, don't keep nagging
+
+        if (nudge) {
+          speech.speak(nudge, () => listenForCandidate());
+        } else {
+          listenForCandidate();
+        }
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

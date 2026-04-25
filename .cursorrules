@@ -1,2 +1,83 @@
-# CueMath workspace rules
-# Add project-specific Cursor/Copilot rules here.
+You are an expert full-stack developer building the Cuemath AI Tutor Screener.
+
+## What this project is
+A browser-based voice interview system. A tutor candidate speaks via microphone,
+an AI interviewer responds via synthesized voice, and at the end a structured
+assessment report is generated across 5 dimensions: clarity, warmth, patience,
+simplification ability, and English fluency.
+
+## Tech stack
+- Backend: Python 3.11 + FastAPI + uvicorn + groq + python-dotenv + pydantic v2
+- Frontend: React 18 + Vite + axios + react-router-dom v6
+- Voice input: Web Speech API — SpeechRecognition (Chrome Desktop only, non-continuous)
+- Voice output: Web Speech API — SpeechSynthesis (built-in, all browsers)
+- LLM: Groq API, model: llama-3.3-70b-versatile, OpenAI-compatible endpoint
+- Deployment: Railway (backend) + Vercel (frontend)
+
+## Folder structure — never deviate from this
+backend/
+  main.py              ← FastAPI app entry, CORS config, router registration
+  routers/
+    chat.py            ← POST /api/chat
+    assess.py          ← POST /api/assess
+  services/
+    groq_client.py     ← Groq API wrapper, all LLM calls go here
+    prompts.py         ← All system prompts as constants, never inline in routes
+  models/
+    schemas.py         ← All Pydantic models for requests and responses
+  .env                 ← NEVER commit. GROQ_API_KEY and ALLOWED_ORIGINS live here
+  requirements.txt
+
+frontend/
+  src/
+    pages/
+      Landing.jsx      ← Entry screen, mic permission, start button
+      Interview.jsx    ← Live interview, voice loop, turn counter
+      Report.jsx       ← Assessment report display
+    components/
+      VoiceRecorder.jsx    ← SpeechRecognition: start/stop/result/error
+      AIVoice.jsx          ← SpeechSynthesis: speak text, onend callback
+      StatusIndicator.jsx  ← Visual state: idle/listening/processing/speaking
+      RubricCard.jsx       ← Single dimension in the report
+    hooks/
+      useInterview.js  ← Interview state machine (the core hook)
+      useSpeech.js     ← Abstracts VoiceRecorder + AIVoice together
+    api/
+      client.js        ← axios instance with VITE_API_URL base URL
+      interview.js     ← postChat(messages) and postAssess(transcript) functions
+    App.jsx
+    main.jsx
+
+## Coding rules — follow all of these exactly
+- Functional components and hooks only. No class components.
+- async/await everywhere. No .then() chains.
+- All FastAPI route handlers return a typed Pydantic response model.
+- All API keys in backend .env only. Frontend has VITE_API_URL only.
+- CORS: explicitly list allowed origins. Never use allow_origins=["*"].
+- State management: useState + useReducer only. No Redux, no Zustand, no Context.
+- No database, no ORM. Session state lives in React only (array of message objects).
+- All frontend API calls go through /src/api/interview.js. Never raw fetch in components.
+- Error handling: all FastAPI errors return {"detail": "..."}, frontend shows detail to user.
+- CSS: plain CSS files per component. No Tailwind (no build step available).
+- Imports: use @/ alias for src/. Max 2 levels of relative imports.
+
+## Critical technical constraints — these will break the app if ignored
+- SpeechRecognition: set continuous=false (NOT true). Restart a fresh recognition instance
+  each time the candidate should speak. Continuous mode causes compounding transcript bugs.
+- Groq free tier: 6,000 TPM and 1,000 RPD. Keep total tokens per /api/chat call under 800.
+  This means: concise system prompt (~300 tokens) + last 4 messages only (not full history).
+- Groq endpoint: https://api.groq.com/openai/v1 (OpenAI-compatible, use openai Python SDK)
+- SpeechRecognition only works on Chrome Desktop. Show a browser warning on other browsers.
+- SpeechSynthesis must be triggered inside a user gesture handler (button click) the first
+  time it is called, otherwise browsers block it silently.
+- Interview turn limit: exactly 7 AI turns. Do not let it run longer.
+- Assessment call is a single request at the end. Response must be valid JSON only.
+  If Groq returns non-JSON, retry once with a stricter prompt before showing an error.
+
+## Anti-patterns — never do any of these
+- Never set recognition.continuous = true
+- Never send the full conversation history to Groq (token limit)
+- Never put GROQ_API_KEY in frontend env or any JS file
+- Never use an ORM or database
+- Never import API calls directly in page components (goes through /api/ only)
+- Never use .then() when you can use await

@@ -60,22 +60,29 @@ async def get_chat_response(messages: list, turn_count: int) -> ChatResponse:
             raise HTTPException(status_code=429, detail="Rate limit reached. Please wait a moment.")
         except Exception:
             raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
-    except Exception:
-        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
 
     reply = completion.choices[0].message.content.strip()
     should_end = (turn_count + 1) >= _MAX_TURNS
     return ChatResponse(reply=reply, should_end=should_end)
 
 
-async def get_assessment(transcript: list) -> dict:
+async def get_assessment(transcript: list, extra_instruction: str | None = None) -> dict:
+    """
+    Call Groq with the assessment prompt and return the parsed JSON dict.
+    Raises json.JSONDecodeError if the response cannot be parsed as JSON.
+    The router is responsible for the stricter-prompt retry on JSONDecodeError.
+    """
     client = _client()
     transcript_text = "\n".join(
         f"{_to_dict(m)['role'].upper()}: {_to_dict(m)['content']}" for m in transcript
     )
+    user_content = f"Interview transcript:\n\n{transcript_text}"
+    if extra_instruction:
+        user_content += f"\n\n{extra_instruction}"
+
     payload = [
         {"role": "system", "content": ASSESSMENT_SYSTEM_PROMPT},
-        {"role": "user", "content": f"Interview transcript:\n\n{transcript_text}"},
+        {"role": "user", "content": user_content},
     ]
 
     async def _call():
@@ -89,35 +96,7 @@ async def get_assessment(transcript: list) -> dict:
         completion = await _call()
     except RateLimitError:
         await asyncio.sleep(2)
-        try:
-            completion = await _call()
-        except RateLimitError:
-            raise HTTPException(status_code=429, detail="Rate limit reached. Please wait a moment.")
-        except Exception:
-            raise HTTPException(status_code=500, detail="Assessment generation failed. Please contact support.")
-    except Exception:
-        raise HTTPException(status_code=500, detail="Assessment generation failed. Please contact support.")
+        completion = await _call()
 
     raw = completion.choices[0].message.content
-    cleaned = _strip_fences(raw)
-
-    try:
-        return json.loads(cleaned)
-    except json.JSONDecodeError:
-        # One retry with a maximally strict follow-up prompt
-        strict_payload = payload + [
-            {"role": "assistant", "content": raw},
-            {
-                "role": "user",
-                "content": "Return ONLY the JSON object. No markdown, no explanation, no text before or after.",
-            },
-        ]
-        try:
-            retry = await client.chat.completions.create(
-                model=_MODEL, messages=strict_payload, max_tokens=800
-            )
-            return json.loads(_strip_fences(retry.choices[0].message.content))
-        except Exception:
-            raise HTTPException(
-                status_code=500, detail="Assessment generation failed. Please contact support."
-            )
+    return json.loads(_strip_fences(raw))

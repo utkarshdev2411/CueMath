@@ -42,6 +42,19 @@ Phase 4 — Deploy
 [ ] Update ALLOWED_ORIGINS on Railway with Vercel URL
 [ ] Full end-to-end test on deployed URLs
 
+Phase 5 — Polish (only after live URL works)
+[x] Fix pass/review/reject thresholds (done 2026-04-26)
+[x] Embed BARS anchors in assessment prompt (done 2026-04-26)
+[x] Turn-aware interviewer prompt (done 2026-04-26)
+[x] STAR follow-up nudging (done 2026-04-26)
+[x] Consent + AI disclosure on landing (done 2026-04-26)
+[x] SpeechSynthesis watchdog timer (done 2026-04-26)
+[x] Better voice selection for Priya (done 2026-04-26)
+[ ] Audio visualizer (1 hr)
+[ ] Radar chart on report (1 hr)
+[ ] Transcript download (15 min)
+[ ] Design Decisions in README (20 min)
+
 ---
 
 ## Decisions log
@@ -62,6 +75,14 @@ Phase 4 — Deploy
 | 2026-04-25 | `globalNetworkFailuresRef` (not per-call) for network error recovery | Per-call counter was reset on every `listenForCandidate()` call → infinite mic cycling on Ubuntu. Global counter accumulates across all calls, stops at 5 failures |
 | 2026-04-25 | "Current Question" banner on Interview page | Shows Priya's latest question as readable text while mic is open. Makes MVP testing easier and helps candidates who miss audio |
 | 2026-04-25 | Speaker labels ("Priya" / "You") on transcript bubbles | Clarity for tester and candidate about who said what in the conversation |
+| 2026-04-26 | Fixed assessment verdict thresholds and tiers in `ASSESSMENT_SYSTEM_PROMPT` | Was: `pass ≥ 3.0, else "fail"`. Now: `pass ≥ 3.5`, `review 2.5–3.4`, `reject < 2.5` — matches `assessment-rubric.md`. `Report.jsx` already handled all three strings but LLM never emitted "review" or "reject" until this fix |
+| 2026-04-26 | Embedded BARS anchors (levels 1, 3, 5) for all 5 dimensions in `ASSESSMENT_SYSTEM_PROMPT` | LLM was scoring on vague one-line descriptions. Anchors give concrete behavioral examples per score level so scoring is calibrated, not vibes-based. Adds ~60 tokens; still within budget |
+| 2026-04-26 | `build_interviewer_prompt(turn_count)` replaces static `INTERVIEWER_SYSTEM_PROMPT` | Each of the 7 turns now has a specific diagnostic focus (warm opener → simplification → stuck-student → tutor mistakes → failure story → Cuemath fit → close). Prevents LLM from repeating question types or missing a dimension |
+| 2026-04-26 | STAR follow-up rules added to `_INTERVIEWER_BASE` + per-turn follow-up triggers | Global STAR rule (ask for situation/action/result on vague answers) + turn-specific triggers from `interview-design.md` (e.g., turn 1: "if no example, ask them to walk through exactly what they'd say step by step"). Per `assessment-rubric.md` evidence rules, structured answers produce quotable evidence; STAR probes make those quotes more diagnostic. All 7 turns still <350 tokens |
+| 2026-04-26 | AI disclosure card + consent checkbox on Landing page, Start button gated on `consented` | DPDP Act compliance and candidate trust: discloses Priya is AI, explains responses are analyzed for communication/teaching skills, notes a human recruiter reviews results. Checkbox must be ticked to enable Start. Disclosure existed in earlier plan but was not yet implemented — Landing had only browser/mic checks |
+| 2026-04-26 | SpeechSynthesis watchdog + keepalive in `useSpeech.speak()` | Chrome has two known bugs: (1) after ~15s of continuous speech `onend` silently never fires, freezing the state machine in SPEAKING; (2) long utterances can self-pause. Fixed with a 500ms watchdog `setInterval` that force-calls onDone when `speaking` + `pending` go false after synthesis had started, plus a 10s keepalive that calls `resume()` only when `paused` is actually true (aggressive pause/resume caused duplicate audio on some Chrome builds). A shared `finished` flag prevents double-firing between watchdog / onend / onerror |
+| 2026-04-26 | `pickPriyaVoice()` voice-selection ladder in `useSpeech` | Default behaviour (first `en-US` voice) produced a generic American male voice on most Chrome installs, breaking the "Priya" character. New ladder: (1) `en-IN` with "female" in the name, (2) any `en-IN`, (3) any `en-*` female, (4) named-voice hints (Google UK Female, Samantha, Zira, Karen, Victoria), (5) first `en-US`, (6) first available. Falls through gracefully on any platform |
+| 2026-04-26 | Landing page split into 3-step flow (intro → consent → preparing) | Single-page Landing was dense and mixed "what this is" with legal consent. New stepper: Step 1 "How it works" + 5 metrics + tips + Next button; Step 2 disclosure + consent checkbox + Back/Start; Step 3 full-screen loader "Preparing your interview…" that runs mic+synth priming then navigates. Preserves user-gesture requirement for SpeechSynthesis (priming happens inside the Start button handler before nav) |
 
 ---
 
@@ -69,6 +90,7 @@ Phase 4 — Deploy
 | Bug | Fix |
 |-----|-----|
 | Pasting `Expected:` comment lines into terminal caused `command not found` errors | Run `curl` command alone without inline comment annotations |
+| `network` SpeechRecognition error retry called `.start()` on dead instance → `InvalidStateError` → immediately showed "Network error while listening" | Retry now calls `startListening()` with a fresh `SpeechRecognition` instance; `_isRetry: true` flag prevents reset of `networkRetryAttemptedRef` so a second consecutive failure surfaces the error instead of looping forever |
 | "Network error while listening" banner after Priya speaks | `networkRetryAttemptedRef` was reset on every fresh `startListening()` call → infinite mic cycling. Fixed with `globalNetworkFailuresRef` that persists across calls. Retries with backoff (1s, 2s), hard stop at 5 failures |
 | Mic activating and deactivating rapidly on Ubuntu (Brave browser) | Web Speech API not supported on Brave — only Chrome. Detection added on Landing page. Fixed by testing on Chrome |
 | Mic cycling even on Chrome | Same `globalNetworkFailuresRef` fix above |

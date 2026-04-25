@@ -6,10 +6,57 @@ const NETWORK_RETRY_DELAY_MS = 1000;
 const SUBMIT_SILENCE_MS = 4000;
 // How long (ms) of total silence at the START before prompting the user to speak.
 const PROMPT_SILENCE_MS = 8000;
+// Watchdog poll interval — if synthesis stops but onend never fires, we force it.
+const SYNTH_WATCHDOG_MS = 500;
+// Chrome pauses synthesis after ~15s; calling resume() every 10s keeps it going.
+const SYNTH_KEEPALIVE_MS = 10000;
+
+// Named voices that are decent "Priya" fallbacks if no en-IN female is present.
+// Order reflects likelihood of being female-sounding and clear.
+const NAMED_VOICE_HINTS = [
+  "Google UK English Female",
+  "Google Female",
+  "Samantha",
+  "Zira",
+  "Microsoft Zira",
+  "Karen",
+  "Victoria",
+];
 
 function getSpeechRecognition() {
   if (typeof window === "undefined") return null;
   return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+}
+
+// Pick the best available voice for "Priya" per the preference ladder in
+// future-improvements.md:
+//   1. en-IN with "female" in the name
+//   2. Any en-IN voice
+//   3. Any en-* voice with "female" in the name
+//   4. Named voices like "Google Female", "Samantha", "Zira"
+//   5. First en-US voice
+// Returns the SpeechSynthesisVoice object (or null if none available).
+function pickPriyaVoice(voices) {
+  if (!voices || !voices.length) return null;
+  const hasFemale = (v) => /female/i.test(v.name);
+
+  const enIn = voices.filter((v) => /^en-IN\b/i.test(v.lang));
+  const enInFemale = enIn.find(hasFemale);
+  if (enInFemale) return enInFemale;
+  if (enIn.length) return enIn[0];
+
+  const enFemale = voices.find((v) => /^en\b/i.test(v.lang) && hasFemale(v));
+  if (enFemale) return enFemale;
+
+  for (const hint of NAMED_VOICE_HINTS) {
+    const v = voices.find((x) => x.name === hint || x.name.includes(hint));
+    if (v) return v;
+  }
+
+  const enUs = voices.find((v) => /^en-US\b/i.test(v.lang));
+  if (enUs) return enUs;
+
+  return voices[0];
 }
 
 export function useSpeech() {
@@ -30,6 +77,9 @@ export function useSpeech() {
   const silenceTimerRef = useRef(null);
   // Prompt timer — fires PROMPT_SILENCE_MS if the user says nothing at all.
   const promptTimerRef = useRef(null);
+  // Synthesis watchdog + keepalive intervals (for Chrome's 15s silent-stop bug).
+  const synthWatchdogRef = useRef(null);
+  const synthKeepaliveRef = useRef(null);
   const voicesRef = useRef([]);
 
   // Detect browser support once on mount.
@@ -59,6 +109,8 @@ export function useSpeech() {
     return () => {
       clearTimeout(silenceTimerRef.current);
       clearTimeout(promptTimerRef.current);
+      clearInterval(synthWatchdogRef.current);
+      clearInterval(synthKeepaliveRef.current);
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
@@ -271,32 +323,87 @@ export function useSpeech() {
       return;
     }
 
-    // Cancel any utterance still in the queue.
+    // Cancel any utterance still in the queue and tear down any prior watchdog.
     window.speechSynthesis.cancel();
+    clearInterval(synthWatchdogRef.current);
+    clearInterval(synthKeepaliveRef.current);
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = WELCOME_VOICE_LANG;
 
+    // Per future-improvements.md #7 — pick the best available voice for Priya
+    // so she doesn't sound like a generic American male.
     const voices = voicesRef.current.length
       ? voicesRef.current
       : window.speechSynthesis.getVoices();
-    const enUsVoice = voices.find((v) => v.lang === WELCOME_VOICE_LANG);
-    if (enUsVoice) {
-      utterance.voice = enUsVoice;
+    const priyaVoice = pickPriyaVoice(voices);
+    if (priyaVoice) {
+      utterance.voice = priyaVoice;
+      if (priyaVoice.lang) utterance.lang = priyaVoice.lang;
     }
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => {
+    // Chrome has two well-known SpeechSynthesis bugs (future-improvements.md #6):
+    //   - After ~15s it silently stops and never fires `onend`.
+    //   - Long utterances can self-pause mid-stream; resume() unsticks them.
+    // We defend against both with a watchdog that force-fires onDone once,
+    // and a keepalive that periodically calls resume() while speaking.
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      clearInterval(synthWatchdogRef.current);
+      clearInterval(synthKeepaliveRef.current);
       setIsSpeaking(false);
-      if (onDone) onDone();
-    };
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      // onDone is still called so the caller's state machine doesn't hang.
       if (onDone) onDone();
     };
 
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => finish();
+    utterance.onerror = () => finish();
+
     window.speechSynthesis.speak(utterance);
+
+    // Keepalive — if Chrome self-pauses a long utterance (known bug), calling
+    // resume() gets it going again. We intentionally do NOT call pause()
+    // preemptively: on some Chrome versions that duplicates already-spoken
+    // audio. Only unstick when we detect the paused state.
+    synthKeepaliveRef.current = setInterval(() => {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      if (synth.paused) synth.resume();
+    }, SYNTH_KEEPALIVE_MS);
+
+    // Watchdog — if the engine stops reporting `speaking` but onend never
+    // arrived, force-complete so the state machine never stalls in SPEAKING.
+    // We also bail if the engine never starts at all (Chrome occasionally
+    // swallows utterances without firing any event).
+    let started = false;
+    let idleTicks = 0;
+    const watchdogStartedAt = Date.now();
+    synthWatchdogRef.current = setInterval(() => {
+      if (finished) return;
+      const synth = window.speechSynthesis;
+      if (!synth) {
+        finish();
+        return;
+      }
+      if (synth.speaking || synth.pending) {
+        started = true;
+        idleTicks = 0;
+        return;
+      }
+      if (started) {
+        // Engine reported speaking, then stopped reporting it, but onend never
+        // fired. Classic Chrome 15s bug — force-complete.
+        finish();
+        return;
+      }
+      // Never started — wait up to ~3s before giving up entirely.
+      idleTicks += 1;
+      if (Date.now() - watchdogStartedAt > 3000 || idleTicks > 6) {
+        finish();
+      }
+    }, SYNTH_WATCHDOG_MS);
   }, []);
 
   return {

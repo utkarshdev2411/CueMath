@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from openai import AsyncOpenAI, RateLimitError
 
 from models.schemas import ChatResponse
-from services.prompts import ASSESSMENT_SYSTEM_PROMPT, INTERVIEWER_SYSTEM_PROMPT
+from services.prompts import ASSESSMENT_SYSTEM_PROMPT, build_interviewer_prompt
 
 _MODEL = "llama-3.3-70b-versatile"
 _MAX_TURNS = 7
@@ -41,7 +41,8 @@ def _strip_fences(text: str) -> str:
 async def get_chat_response(messages: list, turn_count: int) -> ChatResponse:
     client = _client()
     last_four = [_to_dict(m) for m in messages[-4:]]
-    payload = [{"role": "system", "content": INTERVIEWER_SYSTEM_PROMPT}] + last_four
+    system_prompt = build_interviewer_prompt(turn_count)
+    payload = [{"role": "system", "content": system_prompt}] + last_four
 
     async def _call():
         return await client.chat.completions.create(

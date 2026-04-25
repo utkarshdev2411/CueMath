@@ -1,23 +1,44 @@
 :root {
-  --bg: #f7f7fb;
+  /* Cuemath palette */
+  --bg: #ffffff;
   --surface: #ffffff;
-  --text: #1b1b1f;
-  --text-muted: #6b6b76;
-  --border: #e5e5ec;
-  --accent: #5b3cff;
-  --accent-soft: #ece8ff;
-  --user-bg: #5b3cff;
-  --user-fg: #ffffff;
-  --ai-bg: #f1f1f6;
-  --ai-fg: #1b1b1f;
-  --success: #1f8a4c;
-  --success-bg: #e4f6ea;
-  --warn: #b7791f;
-  --warn-bg: #fcf3dd;
-  --danger: #c0392b;
-  --danger-bg: #fbe5e1;
+  --text: #1a1a1a;
+  --text-muted: #666666;
+  --border: #1a1a1a;
+  --accent: #fac02e;
+  --accent-soft: #fff8e7;
 
-  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Pastels */
+  --mint: #c8f0d4;
+  --lavender: #e8d5f5;
+  --sky: #d0e8ff;
+  --salmon: #ffd5c8;
+  --pink: #ffe0eb;
+  --cream: #fff8e7;
+
+  /* Chat bubbles */
+  --user-bg: #fac02e;
+  --user-fg: #1a1a1a;
+  --ai-bg: #fff8e7;
+  --ai-fg: #1a1a1a;
+
+  /* Semantic */
+  --success: #2ea043;
+  --success-bg: #c8f0d4;
+  --warn: #d4a017;
+  --warn-bg: #fff8e7;
+  --danger: #d93025;
+  --danger-bg: #ffd5d5;
+
+  /* Hard-offset shadows */
+  --shadow-sm: 4px 4px 0 #1a1a1a;
+  --shadow-md: 6px 6px 0 #1a1a1a;
+  --shadow-lg: 8px 8px 0 #1a1a1a;
+
+  /* Typography */
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -43,7 +64,7 @@ button {
   border-radius: 8px;
   padding: 12px 24px;
   background: var(--accent);
-  color: #fff;
+  color: var(--text);
   font-weight: 600;
   transition: opacity 0.15s;
 }
@@ -62,5 +83,7 @@ h2,
 h3 {
   margin: 0 0 12px;
   color: var(--text);
-  font-weight: 600;
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }

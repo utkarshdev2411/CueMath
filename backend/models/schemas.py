@@ -1,19 +1,36 @@
+from typing import Optional
 from pydantic import BaseModel
 
 
+class Message(BaseModel):
+    role: str
+    content: str
+
+
 class ChatRequest(BaseModel):
-    message: str
+    messages: list[Message]
+    turn_count: int
 
 
 class ChatResponse(BaseModel):
     reply: str
+    should_end: bool
+
+
+class DimensionScore(BaseModel):
+    score: int
+    evidence: str
 
 
 class AssessRequest(BaseModel):
-    question: str
-    answer: str
+    transcript: list[Message]
+    candidate_name: Optional[str] = "Candidate"
 
 
 class AssessResponse(BaseModel):
-    score: float
-    feedback: str
+    overall: str
+    weighted_score: float
+    summary: str
+    dimensions: dict[str, DimensionScore]
+    red_flags: list[str]
+    recommendation: str

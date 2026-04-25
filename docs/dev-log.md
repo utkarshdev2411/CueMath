@@ -3,20 +3,20 @@
 Update this every session. Your AI tools will read it to understand where you are.
 
 ## Current status
-[ ] Not started
+Phase 1 and Phase 2 skeleton complete. No logic implemented yet.
 
 ## Build order (follow this sequence)
 Phase 1 — Backend skeleton
-[ ] FastAPI app with CORS, /health, empty /api/chat, empty /api/assess
-[ ] groq_client.py with Groq connection test
-[ ] Pydantic schemas for all request/response models
-[ ] System prompts in prompts.py
+[x] FastAPI app with CORS, /health, empty /api/chat, empty /api/assess
+[x] groq_client.py with Groq connection test
+[x] Pydantic schemas for all request/response models
+[x] System prompts in prompts.py (empty placeholders)
 [ ] /api/chat working with real Groq response
 [ ] /api/assess working with real Groq response + JSON parsing
 
 Phase 2 — Frontend skeleton
-[ ] React + Vite scaffold, react-router-dom routes
-[ ] axios client pointed at backend
+[x] React + Vite scaffold, react-router-dom routes
+[x] axios client pointed at backend
 [ ] Landing page with browser check and mic permission request
 [ ] useSpeech hook — SpeechRecognition + SpeechSynthesis wired together
 [ ] useInterview hook — state machine, all phases
@@ -36,7 +36,9 @@ Phase 4 — Deploy
 ## Decisions log
 | Date | Decision | Reason |
 |------|----------|--------|
-| | | |
+| 2026-04-25 | Use `openai` Python SDK (not `groq` SDK) for Groq calls | openai SDK + base_url override is the documented preferred pattern; avoids extra dependency |
+| 2026-04-25 | Route stubs return `{"status": "not implemented"}` | Keeps FastAPI app bootable before logic is written |
+| 2026-04-25 | `ALLOWED_ORIGINS` split on `,` at startup | Matches api-spec.md CORS config exactly |
 
 ## Bugs hit and fixed
 | Bug | Fix |

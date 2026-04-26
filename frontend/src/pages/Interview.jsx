@@ -94,65 +94,140 @@ export default function Interview() {
         candidateName={candidateName}
       />
 
-      <div className="interview-shell">
-        <StatusIndicator phase={phase} />
+      <div className="interview-layout">
+        {/* ---- Left Sidebar ---- */}
+        <aside className="sidebar sidebar-left">
+          <StatusIndicator phase={phase} />
 
-        {showCurrentQ && (
-          <section className="current-question" aria-live="polite">
-            <div className="current-question-head">
-              <span className="current-question-eyebrow">Priya asked</span>
+          <div className="sidebar-card sidebar-info">
+            <div className="sidebar-card-head">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+              <span>Tips</span>
+            </div>
+            <ul className="sidebar-tips">
+              <li>Speak naturally at your own pace</li>
+              <li>Use examples when explaining</li>
+              <li>Pauses are OK — Priya waits</li>
+              <li>Think of a real student scenario</li>
+            </ul>
+          </div>
+
+          <div className="sidebar-card sidebar-progress-card">
+            <div className="sidebar-card-head">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+              <span>Progress</span>
+            </div>
+            <div className="sidebar-progress-dots">
+              {Array.from({ length: MAX_TURNS }).map((_, i) => {
+                const n = i + 1;
+                const state = n < displayedTurn ? "done" : n === displayedTurn ? "active" : "pending";
+                return (
+                  <div key={i} className={`sp-dot sp-dot-${state}`}>
+                    <span className="sp-dot-num">{n}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </aside>
+
+        {/* ---- Center: Transcript ---- */}
+        <section className="transcript-col">
+          {showCurrentQ && (
+            <div className="current-question" aria-live="polite">
+              <p className="current-question-text">{lastAiMessage.content}</p>
               <span className="current-question-turn">
                 Q{displayedTurn} <span className="of">of {MAX_TURNS}</span>
               </span>
             </div>
-            <p className="current-question-text">{lastAiMessage.content}</p>
-          </section>
-        )}
+          )}
 
-        <section className="transcript-card" aria-label="Conversation transcript">
-          <div className="transcript-head">
-            <span className="transcript-eyebrow">Live transcript</span>
-            <span className="transcript-count">
-              {messages.length} message{messages.length === 1 ? "" : "s"}
-            </span>
+          <div className="transcript-card" aria-label="Conversation transcript">
+            <div className="transcript-head">
+              <span className="transcript-eyebrow">Live transcript</span>
+              <span className="transcript-count">
+                {messages.length} message{messages.length === 1 ? "" : "s"}
+              </span>
+            </div>
+
+            <div ref={transcriptRef} className="transcript-panel">
+              {messages.length === 0 && (
+                <div className="transcript-empty">
+                  <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{opacity:0.4, marginBottom:8}}>
+                    <rect x="9" y="2" width="6" height="12" rx="3" />
+                    <path d="M5 10a7 7 0 0 0 14 0" />
+                    <line x1="12" y1="19" x2="12" y2="22" />
+                    <line x1="8" y1="22" x2="16" y2="22" />
+                  </svg>
+                  <div>Priya will speak first — listen through your speakers.</div>
+                </div>
+              )}
+
+              {messages.map((m, idx) => (
+                <Message key={idx} role={m.role} content={m.content} />
+              ))}
+
+              {isListening && interimTranscript && (
+                <Message role="user" content={interimTranscript} interim />
+              )}
+            </div>
           </div>
 
-          <div ref={transcriptRef} className="transcript-panel">
-            {messages.length === 0 && (
-              <div className="transcript-empty">
-                Priya will speak first — listen through your speakers or headphones.
+          <div className="interview-footer">
+            <div className="footer-meta">
+              <span className={`status-pill pill-${footerPillVariant(phase)}`}>
+                {footerPillLabel(phase)}
+              </span>
+              <span className="footer-sep" aria-hidden="true">·</span>
+              <span className="footer-timer" aria-label={`Elapsed time ${elapsedLabel}`}>
+                <ClockIcon /> {elapsedLabel}
+              </span>
+            </div>
+            {error && (
+              <div className="interview-error" role="alert">
+                {error}
               </div>
             )}
-
-            {messages.map((m, idx) => (
-              <Message key={idx} role={m.role} content={m.content} />
-            ))}
-
-            {isListening && interimTranscript && (
-              <Message role="user" content={interimTranscript} interim />
-            )}
+            <div className="footer-hint">
+              Pauses are OK. Priya waits until you're done.
+            </div>
           </div>
         </section>
 
-        <div className="interview-footer">
-          <div className="footer-meta">
-            <span className={`status-pill pill-${footerPillVariant(phase)}`}>
-              {footerPillLabel(phase)}
-            </span>
-            <span className="footer-sep" aria-hidden="true">·</span>
-            <span className="footer-timer" aria-label={`Elapsed time ${elapsedLabel}`}>
-              <ClockIcon /> {elapsedLabel}
-            </span>
-          </div>
-          {error && (
-            <div className="interview-error" role="alert">
-              {error}
+        {/* ---- Right Sidebar ---- */}
+        <aside className="sidebar sidebar-right">
+          <div className="sidebar-card sidebar-rubric">
+            <div className="sidebar-card-head">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+              <span>What we assess</span>
             </div>
-          )}
-          <div className="footer-hint">
-            Pauses are OK. Priya waits until you're done.
+            <div className="rubric-mini-list">
+              <span className="rubric-mini rubric-m-mint">Clarity</span>
+              <span className="rubric-mini rubric-m-lavender">Simplification</span>
+              <span className="rubric-mini rubric-m-salmon">Warmth</span>
+              <span className="rubric-mini rubric-m-sky">Patience</span>
+              <span className="rubric-mini rubric-m-pink">Fluency</span>
+            </div>
           </div>
-        </div>
+
+          <div className="sidebar-card sidebar-ai-note">
+            <div className="sidebar-card-head">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+              <span>AI disclosure</span>
+            </div>
+            <p className="sidebar-note-text">
+              You're speaking with <strong>Priya</strong>, an AI interviewer. A human recruiter reviews every assessment.
+            </p>
+          </div>
+
+          <div className="sidebar-card sidebar-timer-card">
+            <div className="sidebar-timer-big">
+              <ClockIcon />
+              <span className="sidebar-timer-num">{elapsedLabel}</span>
+            </div>
+            <div className="sidebar-timer-label">Elapsed time</div>
+          </div>
+        </aside>
       </div>
     </main>
   );
@@ -165,7 +240,7 @@ function InterviewNav({ turn, total, progressPct, elapsed, candidateName }) {
     <header className="interview-nav">
       <div className="interview-nav-inner">
         <div className="interview-nav-left">
-          <div className="nav-logo">Cuemath</div>
+          <a href="/" className="nav-logo">Cuemath</a>
           <span className="nav-divider" aria-hidden="true" />
           <div className="nav-session">
             <span className="nav-session-label">Tutor interview</span>
@@ -194,14 +269,6 @@ function InterviewNav({ turn, total, progressPct, elapsed, candidateName }) {
           </div>
         </div>
       </div>
-
-      <div className="interview-dot-row" aria-hidden="true">
-        {Array.from({ length: total }).map((_, i) => {
-          const n = i + 1;
-          const state = n < turn ? "done" : n === turn ? "active" : "pending";
-          return <span key={i} className={`dot dot-${state}`} />;
-        })}
-      </div>
     </header>
   );
 }
@@ -210,10 +277,15 @@ function Message({ role, content, interim }) {
   const isUser = role === "user";
   return (
     <div className={`msg msg-${isUser ? "user" : "ai"} ${interim ? "msg-interim" : ""}`}>
-      <div className="msg-speaker">
-        {isUser ? "You" : "Priya"}
+      <div className="msg-row">
+        <div className={`msg-avatar ${isUser ? "msg-avatar-user" : "msg-avatar-ai"}`}>
+          {isUser ? "Y" : "P"}
+        </div>
+        <div className="msg-content">
+          <div className="msg-speaker">{isUser ? "You" : "Priya"}</div>
+          <div className="msg-bubble">{content}</div>
+        </div>
       </div>
-      <div className="msg-bubble">{content}</div>
     </div>
   );
 }

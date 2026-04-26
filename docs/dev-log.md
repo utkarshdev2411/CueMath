@@ -101,6 +101,18 @@ Phase 5 — Polish (only after live URL works)
 
 ---
 
+## Session log — 2026-04-26 (update 5)
+
+### Post-interview feedback modal
+- Created `src/components/FeedbackModal.jsx` + `FeedbackModal.css`
+  - Centered overlay with dark backdrop (not dismissible by clicking backdrop)
+  - 5-star rating with hover highlight, spring-pop animation, and label ("Excellent — felt very natural!")
+  - Optional textarea (max 300 chars) with live character counter
+  - "Submit feedback" (yellow, disabled until star selected) + "Skip" text link
+  - On submit: saves `{ id, rating, comment, date }` to `localStorage["candidate_feedback"]` array
+  - On skip: navigates without saving
+- `Interview.jsx` updated: after `DONE` phase, instead of navigating immediately, sets `pendingReport` state which mounts the modal. `handleFeedbackDone` fires on either action, then navigates to `/report/:id`.
+
 ## Session log — 2026-04-26 (update 4)
 
 ### Point 2 — Shareable Report URL (next-steps.md)

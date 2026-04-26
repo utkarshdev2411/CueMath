@@ -159,3 +159,14 @@ Suggested content:
 | 12 | Design Decisions in README | 20 min | 🟢 Wow |
 
 Total estimated effort: ~4-5 hours to go from "solid" to "impressive."
+
+---
+
+## Phase 6 — Feedback Analytics
+
+These items build on the post-interview feedback modal (implemented 2026-04-26) that collects candidate star ratings and optional comments into `localStorage["candidate_feedback"]`.
+
+- **Admin dashboard shows average candidate experience rating** — aggregate all entries in `candidate_feedback`, display as a stat card alongside total screened / pass rate. Gives HR a real-time NPS-style pulse on interview quality.
+- **Flag interviews where rating < 3 for human review of Priya's behaviour** — in the Admin candidate list, show a ⚠️ indicator next to any row whose feedback rating is below 3. Helps identify sessions where the AI may have behaved poorly, been confusing, or caused candidate drop-off.
+- **Export feedback CSV for quarterly UX review** — add an "Export CSV" button on the Admin dashboard that serialises all feedback entries (id, name, date, rating, comment) as a downloadable `.csv`. Zero backend needed — pure `Blob` + `URL.createObjectURL`.
+- **Correlate low feedback scores with specific question turns** — join `candidate_feedback` entries with the matching interview record (same `id`) from `localStorage["interviews"]`. For each low-rated interview, inspect the transcript to identify which turns had the shortest candidate replies (a proxy for discomfort or confusion). Surface this as a "turn quality" heatmap in the Admin dashboard.

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import FeedbackModal from "../components/FeedbackModal";
 import StatusIndicator from "../components/StatusIndicator";
 import { useInterview } from "../hooks/useInterview";
 import "./Interview.css";
@@ -27,6 +28,7 @@ export default function Interview() {
   const hasStartedRef = useRef(false);
   const startTimeRef = useRef(null);
   const [elapsed, setElapsed] = useState(0);
+  const [pendingReport, setPendingReport] = useState(null);
 
   // Auto-start the interview exactly once when the page mounts.
   useEffect(() => {
@@ -58,10 +60,10 @@ export default function Interview() {
     return () => clearInterval(id);
   }, [phase]);
 
-  // Navigate to /report/:id once the assessment is ready. Persist the record to
-  // localStorage so the Admin panel can list it and the URL remains shareable.
+  // When assessment is ready, persist the record and show the feedback modal.
+  // Navigation to /report/:id happens only after the candidate submits or skips.
   useEffect(() => {
-    if (phase === "DONE" && report) {
+    if (phase === "DONE" && report && !pendingReport) {
       const id = crypto.randomUUID();
       const record = {
         id,
@@ -79,17 +81,17 @@ export default function Interview() {
       } catch {
         // localStorage unavailable — proceed without persisting
       }
-
-      navigate(`/report/${id}`, {
-        state: {
-          report,
-          candidateName,
-          transcript: messages,
-          elapsedSeconds: elapsed,
-        },
-      });
+      setPendingReport({ id, report, candidateName, transcript: messages, elapsedSeconds: elapsed });
     }
-  }, [phase, report, candidateName, messages, elapsed, navigate]);
+  }, [phase, report, candidateName, messages, elapsed, pendingReport]);
+
+  const handleFeedbackDone = () => {
+    if (!pendingReport) return;
+    const { id, report: r, candidateName: cn, transcript: t, elapsedSeconds: es } = pendingReport;
+    navigate(`/report/${id}`, {
+      state: { report: r, candidateName: cn, transcript: t, elapsedSeconds: es },
+    });
+  };
 
   // Turn counter shown in the UI reflects the current question being asked.
   // turnCount increments after each AI reply, so displayed = min(turnCount, MAX_TURNS).
@@ -192,6 +194,13 @@ export default function Interview() {
           </div>
         </aside>
       </div>
+
+      {pendingReport && (
+        <FeedbackModal
+          interviewId={pendingReport.id}
+          onDone={handleFeedbackDone}
+        />
+      )}
     </main>
   );
 }

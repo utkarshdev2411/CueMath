@@ -7,6 +7,7 @@
   flex-direction: column;
   gap: 14px;
   transition: transform 0.15s, box-shadow 0.15s;
+  page-break-inside: avoid;
 }
 
 .rubric-card:hover {
@@ -105,6 +106,8 @@
   border-radius: 999px 0 0 999px;
   transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 6px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 /* Evidence quote */
@@ -121,6 +124,8 @@
   font-size: 14px;
   line-height: 1.55;
   color: #222;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .rubric-evidence-quote {

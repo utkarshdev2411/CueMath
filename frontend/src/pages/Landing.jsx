@@ -16,6 +16,7 @@ export default function Landing() {
   const navigate = useNavigate();
   const [browserOk, setBrowserOk] = useState(true);
   const [step, setStep] = useState("intro");
+  const [candidateName, setCandidateName] = useState("");
   const [consented, setConsented] = useState(false);
   const [error, setError] = useState(null);
 
@@ -43,6 +44,10 @@ export default function Landing() {
       setError("Please use Google Chrome on a laptop or desktop.");
       return;
     }
+    if (!candidateName.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
     if (!consented) {
       setError("Please check the consent box to continue.");
       return;
@@ -59,7 +64,7 @@ export default function Landing() {
 
       await new Promise((r) => setTimeout(r, 800));
 
-      navigate("/interview");
+      navigate("/interview", { state: { candidateName: candidateName.trim() } });
     } catch {
       setError("Please allow microphone access and refresh the page.");
       setStep("consent");
@@ -69,6 +74,8 @@ export default function Landing() {
   if (step === "consent") {
     return (
       <ConsentOverlay
+        candidateName={candidateName}
+        setCandidateName={setCandidateName}
         consented={consented}
         setConsented={(v) => {
           setConsented(v);
@@ -513,13 +520,25 @@ function FaqItem({ q, a }) {
 
 /* ---------------- Consent overlay (step 2) ---------------- */
 
-function ConsentOverlay({ consented, setConsented, error, browserOk, onBack, onStart }) {
+function ConsentOverlay({ candidateName, setCandidateName, consented, setConsented, error, browserOk, onBack, onStart }) {
   return (
     <main className="overlay grid-bg">
       <div className="overlay-card">
         <span className="eyebrow">Step 2 of 2</span>
         <h1 className="overlay-title">One last thing</h1>
         <p className="overlay-sub">Please review this before we begin.</p>
+
+        <div className="candidate-details">
+          <label className="input-label" htmlFor="candidateName">Your Name</label>
+          <input 
+            id="candidateName"
+            className="text-input" 
+            type="text" 
+            placeholder="e.g. John Doe"
+            value={candidateName}
+            onChange={(e) => setCandidateName(e.target.value)}
+          />
+        </div>
 
         <div className="disclosure-card disclosure-card-inset">
           <div className="disclosure-head">

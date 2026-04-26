@@ -298,6 +298,7 @@
   letter-spacing: -0.01em;
   color: var(--text);
   margin: 0;
+  page-break-after: avoid;
 }
 
 .section-sub {
@@ -492,6 +493,10 @@
    ========================================================= */
 
 @media print {
+  @page {
+    size: auto;
+    margin: 1.5cm;
+  }
   .report {
     background: #ffffff !important;
     padding: 0;
@@ -514,6 +519,15 @@
   .flags-card,
   .rubric-card {
     box-shadow: none !important;
-    break-inside: avoid;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  svg {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .section-title {
+    page-break-after: avoid;
   }
 }

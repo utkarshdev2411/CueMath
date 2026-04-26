@@ -10,7 +10,7 @@ const WELCOME_MESSAGE =
 const MAX_WINDOW = 4;
 
 const initialState = {
-  phase: "IDLE", // IDLE | INTRO | LISTENING | PROCESSING | SPEAKING | COMPLETE | ASSESSING | DONE
+  phase: "IDLE",
   messages: [],
   windowMessages: [],
   turnCount: 0,
@@ -67,8 +67,11 @@ function reducer(state, action) {
   }
 }
 
-export function useInterview() {
-  const [state, dispatch] = useReducer(reducer, initialState);
+export function useInterview(initialCandidateName = null) {
+  const [state, dispatch] = useReducer(reducer, {
+    ...initialState,
+    candidateName: initialCandidateName,
+  });
   const speech = useSpeech();
 
   // Keep the latest state in a ref so callbacks used inside recognition/synth

@@ -32,6 +32,10 @@ export default function RubricCard({ dimension, score, evidence }) {
   const pct = Math.round((safe / 5) * 100);
   const variant = VARIANT[dimension] || "cream";
 
+  let fillBg = "var(--danger)";
+  if (safe >= 4.0) fillBg = "var(--success)";
+  else if (safe >= 2.5) fillBg = "var(--accent)";
+
   return (
     <article className={`rubric-card rubric-${variant}`}>
       <header className="rubric-card-head">
@@ -54,7 +58,7 @@ export default function RubricCard({ dimension, score, evidence }) {
         aria-valuenow={safe}
         aria-label={`${LABELS[dimension] || dimension} score`}
       >
-        <div className="rubric-bar-fill" style={{ width: `${pct}%` }} />
+        <div className="rubric-bar-fill" style={{ width: `${pct}%`, backgroundColor: fillBg }} />
       </div>
 
       {evidence && (

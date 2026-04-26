@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import StatusIndicator from "../components/StatusIndicator";
 import { useInterview } from "../hooks/useInterview";
 import "./Interview.css";
@@ -8,6 +8,9 @@ const MAX_TURNS = 7;
 
 export default function Interview() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialName = location.state?.candidateName || null;
+
   const {
     phase,
     messages,
@@ -18,7 +21,7 @@ export default function Interview() {
     interimTranscript,
     isListening,
     startInterview,
-  } = useInterview();
+  } = useInterview(initialName);
 
   const transcriptRef = useRef(null);
   const hasStartedRef = useRef(false);

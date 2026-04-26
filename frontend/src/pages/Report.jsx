@@ -1,8 +1,46 @@
-import { useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import RadarChart from "../components/RadarChart";
 import RubricCard from "../components/RubricCard";
+import { candidates as seedCandidates } from "../data/candidates";
 import "./Report.css";
+
+function loadFromStorage(id) {
+  if (!id) return null;
+  // Check seed candidates first (no localStorage needed)
+  const seed = seedCandidates.find((c) => c.id === id);
+  if (seed) {
+    return {
+      report: {
+        overall: seed.verdict,
+        weighted_score: seed.weighted_score,
+        summary: seed.summary,
+        dimensions: seed.dimensions,
+        red_flags: seed.red_flags,
+        recommendation: seed.recommendation,
+      },
+      candidateName: seed.name,
+      transcript: [],
+      elapsedSeconds: 0,
+    };
+  }
+  // Check real interviews in localStorage
+  try {
+    const list = JSON.parse(localStorage.getItem("interviews") || "[]");
+    const record = list.find((r) => r.id === id);
+    if (record) {
+      return {
+        report: record.report,
+        candidateName: record.name || record.candidateName,
+        transcript: record.transcript || [],
+        elapsedSeconds: record.elapsedSeconds || 0,
+      };
+    }
+  } catch {
+    // localStorage unavailable
+  }
+  return null;
+}
 
 const VERDICT_INFO = {
   pass: {
@@ -83,7 +121,12 @@ function downloadText(filename, text) {
 export default function Report() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { report, candidateName, transcript, elapsedSeconds } = location.state || {};
+  const { id } = useParams();
+
+  // Prefer in-memory state (just-completed interview or admin nav).
+  // Fall back to localStorage / seed data when opened via direct URL.
+  const stateData = location.state || loadFromStorage(id);
+  const { report, candidateName, transcript, elapsedSeconds } = stateData || {};
 
   const handleBack = () => {
     if (window.history.length > 2) {
@@ -107,12 +150,21 @@ export default function Report() {
     return (
       <main className="report-empty grid-bg">
         <div className="report-empty-card">
-          <span className="eyebrow">No report yet</span>
-          <h2>No report available</h2>
-          <p>Please complete an interview first.</p>
-          <button type="button" className="btn-primary" onClick={() => navigate("/")}>
-            Back to start
-          </button>
+          <span className="eyebrow">{id ? "Report not found" : "No report yet"}</span>
+          <h2>{id ? "This report link has expired" : "No report available"}</h2>
+          <p>
+            {id
+              ? "Reports are stored in the browser. This link may have been opened in a different browser or device."
+              : "Please complete an interview first."}
+          </p>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
+            <button type="button" className="btn-secondary" onClick={() => navigate("/admin")}>
+              View all candidates
+            </button>
+            <button type="button" className="btn-primary" onClick={() => navigate("/")}>
+              Start an interview
+            </button>
+          </div>
         </div>
       </main>
     );
@@ -122,6 +174,15 @@ export default function Report() {
   const verdict = verdictMeta(overall);
   const name = candidateName || "Candidate";
   const hasTranscript = Array.isArray(transcript) && transcript.length > 0;
+  const shareUrl = id ? window.location.href : null;
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = () => {
+    if (!shareUrl) return;
+    navigator.clipboard.writeText(shareUrl).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleDownloadTranscript = () => {
     if (!hasTranscript) return;
@@ -165,6 +226,17 @@ export default function Report() {
           </div>
 
           <div className="report-hero-actions">
+            {shareUrl && (
+              <button
+                type="button"
+                className={`btn-secondary btn-compact btn-copy ${copied ? "btn-copy-done" : ""}`}
+                onClick={handleCopyLink}
+                title="Copy shareable link"
+              >
+                {copied ? <CheckIcon /> : <LinkIcon />}
+                {copied ? "Copied!" : "Copy link"}
+              </button>
+            )}
             <button
               type="button"
               className="btn-secondary btn-compact"
@@ -281,6 +353,23 @@ function ReportNav({ candidateName, onBack }) {
         </div>
       </div>
     </header>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function LinkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
   );
 }
 

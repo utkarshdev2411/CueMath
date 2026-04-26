@@ -217,6 +217,23 @@
   border-radius: 10px;
 }
 
+.btn-copy {
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
+}
+
+.btn-copy-done {
+  background: var(--mint);
+  color: #1a5c2a;
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+  animation: copy-pop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes copy-pop {
+  from { transform: scale(0.92); }
+  to   { transform: scale(1); }
+}
+
 /* =========================================================
    Verdict card — hero section with radar chart
    ========================================================= */

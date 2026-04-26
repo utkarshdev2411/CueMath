@@ -101,6 +101,17 @@ Phase 5 — Polish (only after live URL works)
 
 ---
 
+## Session log — 2026-04-26 (update 4)
+
+### Point 2 — Shareable Report URL (next-steps.md)
+- `Report.jsx` now imports `useParams` and a `loadFromStorage(id)` helper.
+- When `location.state` is absent (direct URL open / page refresh), the helper:
+  1. Checks seed candidates in `src/data/candidates.js` by ID (e.g. `/report/c003`)
+  2. Falls back to `localStorage["interviews"]` for real interview records
+- Empty state now shows two different messages: "no report yet" (no ID) vs. "report link expired" (ID present but no match), with buttons to both `/admin` and `/`.
+- Added "Copy link" button (link icon) to `report-hero-actions` — only shown when a URL ID is present. Copies `window.location.href` to clipboard.
+- `/report/:id` route was already wired in `App.jsx` from the previous session.
+
 ## Session log — 2026-04-26 (update 3)
 
 ### Back button consistency

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Landing.css";
 
 function isChromeDesktop() {
@@ -101,6 +101,18 @@ export default function Landing() {
 function IntroLanding({ browserOk, onNext }) {
   return (
     <div className="landing grid-bg">
+      <Link to="/build-story" className="case-study-banner" aria-label="Read the build-story case study">
+        <div className="case-study-banner-inner">
+          <span className="case-study-banner-text">
+            <span className="case-study-banner-spark" aria-hidden="true">✦</span>
+            How I built this — decisions, bugs, tradeoffs, and principles
+          </span>
+          <span className="case-study-banner-cta">
+            Read the case study
+            <span className="case-study-banner-arrow" aria-hidden="true">→</span>
+          </span>
+        </div>
+      </Link>
       <div className="top-banner">
         <div className="top-banner-inner">
           <div className="top-banner-text">

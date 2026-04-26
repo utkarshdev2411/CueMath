@@ -1,0 +1,199 @@
+/* =========================================================
+   Build Journey page — phases + bugs + git history.
+   Reuses BuildStory.css for the phase/changelog/feature-card styles.
+   This file contains ONLY the commit timeline + small additions.
+   ========================================================= */
+
+/* ---------------- Empty state ---------------- */
+
+.bj-empty {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  color: var(--text-muted);
+  background: #ffffff;
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  text-align: center;
+  margin: 0;
+}
+
+/* ---------------- Commit timeline ---------------- */
+
+.bj-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin-top: 8px;
+}
+
+.bj-day {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.bj-day-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--border);
+}
+
+.bj-day-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--border);
+  box-shadow: 2px 2px 0 var(--border);
+  flex-shrink: 0;
+}
+
+.bj-day-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--text);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.bj-day-count {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--cream);
+  padding: 4px 10px;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  margin-left: auto;
+  letter-spacing: 0.04em;
+}
+
+.bj-commit-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.bj-commit-list::before {
+  content: "";
+  position: absolute;
+  left: 38px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--border);
+  opacity: 0.18;
+  border-radius: 1px;
+}
+
+.bj-commit {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: #ffffff;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 2px 2px 0 var(--border);
+  padding: 14px 18px;
+  position: relative;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.bj-commit:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--border);
+}
+
+.bj-commit-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+  padding: 4px 10px;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  flex-shrink: 0;
+  min-width: 64px;
+  margin-top: 1px;
+}
+
+.bj-tag-feat     { background: #c8f0d4; color: #1a5c2a; }
+.bj-tag-fix      { background: #ffd5d5; color: #8b1a1a; }
+.bj-tag-refactor { background: #e8d5f5; color: #5a2e8a; }
+.bj-tag-docs     { background: #d0e8ff; color: #1d4d8a; }
+.bj-tag-chore    { background: #ffe4b3; color: #8b6914; }
+.bj-tag-other    { background: var(--cream); color: var(--text-muted); }
+
+.bj-commit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.bj-commit-msg {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.bj-commit-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.bj-commit-author {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.bj-commit-dot {
+  opacity: 0.5;
+}
+
+.bj-commit-time {
+  letter-spacing: 0.02em;
+}
+
+/* ---------------- Responsive ---------------- */
+
+@media (max-width: 768px) {
+  .bj-day-header {
+    flex-wrap: wrap;
+  }
+
+  .bj-day-count {
+    margin-left: 0;
+  }
+
+  .bj-commit {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .bj-commit-list::before {
+    display: none;
+  }
+}

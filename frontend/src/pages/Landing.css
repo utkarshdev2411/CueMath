@@ -19,6 +19,82 @@
 }
 
 /* =========================================================
+   Case-study banner (sits above the portfolio banner)
+   ========================================================= */
+
+.case-study-banner {
+  display: block;
+  background: var(--accent);
+  border-bottom: 2px solid var(--border);
+  padding: 10px 0;
+  text-decoration: none;
+  color: var(--text);
+  transition: background 0.15s ease;
+}
+
+.case-study-banner:hover {
+  background: #ffd24a;
+}
+
+.case-study-banner-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.case-study-banner-text {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.005em;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+}
+
+.case-study-banner-spark {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 16px;
+  color: var(--text);
+}
+
+.case-study-banner-cta {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.case-study-banner-arrow {
+  display: inline-block;
+  transition: transform 0.2s ease;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+}
+
+.case-study-banner:hover .case-study-banner-arrow {
+  transform: translateX(6px);
+}
+
+@media (max-width: 640px) {
+  .case-study-banner-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+
+/* =========================================================
    Top announcement banner (portfolio disclaimer)
    ========================================================= */
 

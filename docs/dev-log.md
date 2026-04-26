@@ -9,7 +9,9 @@ Update this every session. Your AI tools will read it to understand where you ar
 - Interview flow: Priya speaks → mic opens → candidate speaks → 4s silence → submit → Priya responds
 - Edge cases handled: empty transcript, network errors, Groq 429, recognition errors, mic cycling
 - Report page: renders dimensional scores, verdict badge, evidence quotes
-- **Remaining: Phase 4 (deployment)**
+- **Admin / HR dashboard live at `/admin`** — seeded with 5 story-telling dummy candidates
+- Real interviews now persist to `localStorage` and use shareable `/report/:id` URLs
+- **Remaining: Phase 4 (deployment) + next-steps.md items 2–9**
 
 ---
 
@@ -93,6 +95,23 @@ Phase 5 — Polish (only after live URL works)
 | 2026-04-26 | Elapsed interview timer in Interview navbar + footer | `useState(0)` + `setInterval` that starts when phase leaves IDLE and stops on ASSESSING/DONE. Formatted as `m:ss` in the nav timer pill and footer meta, and forwarded to Report as `elapsedSeconds` where it's shown as "5m 23s interview" in the meta row. Intentionally elapsed-only (not a countdown) per `ux-flow.md` "No time pressure visible" — elapsed time reduces anxiety by showing progress, a countdown would induce it |
 | 2026-04-26 | Redesigned `RubricCard` with stable colour-per-dimension (not nth-child) | Previous version was a plain white card with dot rows. New version rotates through the Cuemath pastel palette but keyed to dimension name (clarity→mint, simplification→lavender, warmth→salmon, patience→sky, fluency→pink) — stable if dimension ordering changes. Adds a bold Poppins heading, a one-liner hint, a big JetBrains Mono score pill ("4.2 / 5"), an animated yellow score bar, and a styled evidence blockquote with a giant Poppins `"` glyph. Hover lift effect with increased hard shadow |
 | 2026-04-26 | Phase-tinted `StatusIndicator` with integrated audio visualizer | Previous version was a centered `88px` circle showing one of four mini-indicators. New version is a horizontal card with a bordered "Priya" avatar (yellow with a live-status dot that pulses green during LISTENING), a Poppins label + Inter sublabel, and a right-slot visual that changes per phase: audio visualizer during LISTENING, spinning ring during PROCESSING/ASSESSING, 5 animated bars during SPEAKING/INTRO, static bordered mic during IDLE/COMPLETE/DONE. Background colour shifts per phase (mint/cream/lavender) so the candidate knows what's expected without reading the label |
+| 2026-04-26 | Candidate Name captured on Consent overlay | Added `candidateName` input on Landing page, propagated via React Router state to `useInterview`. AI no longer relies on faulty speech-recognition heuristics to extract names, ensuring the final PDF report is always professional and accurately attributed. |
+| 2026-04-26 | Dimension Progress Bar colours based on score | Replaced solid orange bars in `RubricCard` with dynamic colors: Green (≥ 4.0), Amber (2.5 - 3.9), Red (< 2.5) to give immediate visual feedback on candidate performance. |
+| 2026-04-26 | PDF Generation layout and styling fixes | Added `-webkit-print-color-adjust: exact` to SVG elements and progress bars to prevent them from printing invisibly. Added `page-break-inside: avoid` on cards and `page-break-after: avoid` on section titles to prevent ugly PDF splitting. Added `word-break: break-word` to evidence quotes to prevent text truncation in the printed report. |
+
+---
+
+## Session log — 2026-04-26
+
+### Admin / HR Dashboard (next-steps.md item 1)
+- Created `frontend/src/data/candidates.js` — 5 seeded dummy candidates (pass ×3, review ×1, reject ×1) that tell the full story of what the screener can produce.
+- Created `frontend/src/pages/AdminPanel.jsx` + `AdminPanel.css` — `/admin` route with:
+  - Stats bar: total screened, avg score, pass rate, this-week count
+  - Filter tabs: All / Pass / Review / Reject with live counts
+  - Candidate rows: name, date, duration, message count, score, verdict badge, "View Report →"
+  - Merges seeded candidates with real interviews from `localStorage` key `"interviews"`, sorted newest first
+- Updated `frontend/src/pages/Interview.jsx`: after assessment, generate `crypto.randomUUID()`, persist full record to `localStorage["interviews"]`, navigate to `/report/:id` (was `/report`)
+- Updated `frontend/src/App.jsx`: added `/report/:id` route and `/admin` route
 
 ---
 
@@ -106,6 +125,8 @@ Phase 5 — Polish (only after live URL works)
 | Mic cycling even on Chrome | Same `globalNetworkFailuresRef` fix above |
 | Candidate answer submitted after 2s pause (breathing / thinking) | `continuous = false` lets Chrome auto-stop after ~2s. Switched to `continuous = true` + 4s silence timer. Buffer accumulates all `isFinal` chunks; submits only after 4s of complete silence |
 | ESLint `react-hooks/refs` in `AudioVisualizer` — "Cannot update ref during render" | React 19's stricter rules disallow `barsRef.current = bars` directly in the component body. Moved the ref sync into a dedicated `useEffect(() => { barsRef.current = bars }, [bars])`. The rAF draw loop still reads from the ref, so it always sees the freshest frequency data without re-running the expensive canvas-setup effect each frame |
+| `useInterview` useEffect race condition causing "Generating report" to hang | Dispatching `SET_PHASE` to `ASSESSING` inside the `COMPLETE` useEffect caused it to unmount and set `cancelled = true`, ignoring the API response. Fixed by separating the phase transition from the API call effect. |
+| AudioVisualizer overflowing narrow left sidebar | Hardcoded `260px` canvas width caused the flexbox to overflow. Reduced width to `130px` and forced `.status-indicator` to `flex-direction: column` so it fits cleanly in the new 3-column layout sidebar. |
 
 ---
 

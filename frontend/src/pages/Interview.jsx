@@ -58,12 +58,29 @@ export default function Interview() {
     return () => clearInterval(id);
   }, [phase]);
 
-  // Navigate to /report once the assessment is ready. We also forward the full
-  // transcript so the report page can offer a "Download Transcript" export
-  // (future-improvements.md #10).
+  // Navigate to /report/:id once the assessment is ready. Persist the record to
+  // localStorage so the Admin panel can list it and the URL remains shareable.
   useEffect(() => {
     if (phase === "DONE" && report) {
-      navigate("/report", {
+      const id = crypto.randomUUID();
+      const record = {
+        id,
+        name: candidateName || "Candidate",
+        date: new Date().toISOString(),
+        duration: formatElapsed(elapsed).replace(":", "m ") + "s",
+        messages: messages.length,
+        transcript: messages,
+        elapsedSeconds: elapsed,
+        report,
+      };
+      try {
+        const existing = JSON.parse(localStorage.getItem("interviews") || "[]");
+        localStorage.setItem("interviews", JSON.stringify([record, ...existing]));
+      } catch {
+        // localStorage unavailable — proceed without persisting
+      }
+
+      navigate(`/report/${id}`, {
         state: {
           report,
           candidateName,

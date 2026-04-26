@@ -417,6 +417,8 @@ function Navbar({ onCta, browserOk }) {
         <a href="/" className="nav-logo">Cuemath</a>
         <div className="nav-links">
           <a href="#how-it-works" className="nav-link">How it works</a>
+          <a href="#hr-tools" className="nav-link">HR Tools</a>
+          <a href="/admin" className="nav-link nav-link-admin">Admin Panel</a>
           <button
             type="button"
             className="btn-primary btn-compact"

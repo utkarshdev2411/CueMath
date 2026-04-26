@@ -18,6 +18,94 @@
   background-size: 24px 24px;
 }
 
+/* =========================================================
+   Top announcement banner (portfolio disclaimer)
+   ========================================================= */
+
+.top-banner {
+  background: #111;
+  border-bottom: 2px solid var(--border);
+  padding: 10px 0;
+  position: sticky;
+  top: 0;
+  z-index: 101; /* sits above navbar */
+}
+
+.top-banner-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.top-banner-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.top-banner-label {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #666;
+}
+
+.top-banner-name {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: #fff;
+}
+
+.top-banner-desc {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #888;
+}
+
+.top-banner-links {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.top-banner-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #bdbdbd;
+  text-decoration: none;
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+
+.top-banner-link:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(250,192,46,0.08);
+}
+
+@media (max-width: 640px) {
+  .top-banner-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
 .section-inner {
   max-width: 1200px;
   margin: 0 auto;
@@ -191,6 +279,7 @@
   font-size: 22px;
   letter-spacing: -0.01em;
   color: var(--text);
+  text-decoration: none;
 }
 
 .nav-links {
@@ -552,34 +641,359 @@
 }
 
 /* =========================================================
-   Footer
+   Stats row
+   ========================================================= */
+
+.stats-section {
+  padding: 0;
+  margin-top: -40px;
+  position: relative;
+  z-index: 10;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+  padding: 28px 20px;
+}
+
+.stat-item + .stat-item {
+  border-left: 2px solid var(--border);
+}
+
+.stat-number {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: clamp(24px, 3vw, 36px);
+  color: var(--accent);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* =========================================================
+   Why Cuemath section
+   ========================================================= */
+
+.benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.benefits-list li {
+  position: relative;
+  padding-left: 28px;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.benefits-list li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.benefits-list li strong {
+  font-weight: 700;
+}
+
+.why-visual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.why-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px 16px;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.why-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-md);
+}
+
+.why-card-1 { background: var(--sky); }
+.why-card-2 { background: var(--mint); }
+.why-card-3 { background: var(--lavender); grid-column: 1 / -1; }
+
+.why-icon {
+  width: 36px;
+  height: 36px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.why-stat {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.why-label {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* =========================================================
+   Testimonials
+   ========================================================= */
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.testimonial-card {
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  padding: 28px 24px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.testimonial-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-md);
+}
+
+.testimonial-cream   { background: var(--cream); }
+.testimonial-mint    { background: var(--mint); }
+.testimonial-lavender { background: var(--lavender); }
+
+.testimonial-quote {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  font-style: italic;
+  color: #2b2b2b;
+  margin: 0 0 20px;
+}
+
+.testimonial-footer {
+  border-top: 1px solid rgba(0,0,0,0.1);
+  padding-top: 14px;
+}
+
+.testimonial-author {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.testimonial-role {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* =========================================================
+   FAQ accordion
+   ========================================================= */
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 800px;
+}
+
+.faq-item {
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 3px 3px 0 var(--border);
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+
+.faq-item:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.faq-open {
+  box-shadow: var(--shadow-sm);
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.faq-icon {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--cream);
+}
+
+.faq-answer {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+  padding: 0 20px 18px;
+  animation: fadeInUp 0.2s ease;
+}
+
+/* =========================================================
+   Expanded Footer
    ========================================================= */
 
 .footer {
   background: var(--text);
   color: #ffffff;
-  padding: 28px 0;
+  padding: 48px 0 0;
 }
 
-.footer-inner {
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 40px;
+}
+
+.footer-col {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .footer-brand {
   font-family: "Poppins", sans-serif;
   font-weight: 800;
-  font-size: 20px;
+  font-size: 22px;
   color: var(--accent);
+}
+
+.footer-tagline {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: #bdbdbd;
+  margin: 4px 0 12px;
+  line-height: 1.5;
+}
+
+.footer-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.footer-badge {
+  font-family: "Inter", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: #ddd;
+}
+
+.footer-heading {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.footer-link {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: #bdbdbd;
+  text-decoration: none;
+  padding: 3px 0;
+  transition: color 0.15s;
+}
+
+.footer-link:hover {
+  color: var(--accent);
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: 32px;
+  padding-top: 20px;
+  padding-bottom: 20px;
 }
 
 .footer-meta {
   font-family: "Inter", sans-serif;
   font-size: 13px;
-  color: #bdbdbd;
+  color: #888;
 }
 
 /* =========================================================
@@ -771,6 +1185,8 @@
   .grid-3 { grid-template-columns: 1fr 1fr; }
   .rubric-grid { grid-template-columns: 1fr 1fr; }
   .split { grid-template-columns: 1fr; gap: 32px; }
+  .testimonials-grid { grid-template-columns: 1fr 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 640px) {
@@ -788,5 +1204,100 @@
   .overlay-actions { flex-direction: column-reverse; }
   .overlay-actions .btn-primary,
   .overlay-actions .btn-secondary { width: 100%; }
-  .footer-inner { flex-direction: column; align-items: flex-start; }
+  .stats-row { flex-direction: column; }
+  .stat-item + .stat-item { border-left: none; border-top: 2px solid var(--border); }
+  .stats-section { margin-top: -24px; }
+  .testimonials-grid { grid-template-columns: 1fr; }
+  .why-visual { grid-template-columns: 1fr; }
+  .why-card-3 { grid-column: auto; }
+  .footer-grid { grid-template-columns: 1fr; gap: 28px; }
 }
+
+/* =========================================================
+   Developer credit bar
+   ========================================================= */
+
+.dev-credit {
+  background: #111;
+  padding: 20px 0;
+}
+
+.dev-credit-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.dev-credit-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dev-credit-label {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #666;
+}
+
+.dev-credit-name {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: #fff;
+}
+
+.dev-credit-desc {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #888;
+}
+
+.dev-credit-links {
+  display: flex;
+  gap: 12px;
+}
+
+.dev-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #bdbdbd;
+  text-decoration: none;
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+
+.dev-link:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(250,192,46,0.08);
+}
+
+.dev-link svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .dev-credit-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .dev-credit-text {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+

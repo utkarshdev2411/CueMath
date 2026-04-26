@@ -1,47 +1,117 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAudioVisualizer } from "../hooks/useAudioVisualizer";
 import "./Landing.css";
 
-function isChromeDesktop() {
-  if (typeof navigator === "undefined") return false;
+/**
+ * Detect the visitor's browser/device specifically enough to give them a useful
+ * warning. Web Speech API only works on Chrome desktop — every other case needs
+ * a precise message rather than a generic "browser not supported".
+ */
+function detectBrowser() {
+  if (typeof navigator === "undefined") {
+    return { ok: false, name: "unknown", message: "Browser detection failed. Please use Google Chrome on a laptop or desktop." };
+  }
   const ua = navigator.userAgent;
-  const isChrome = /Chrome\//.test(ua) && !/Edg\//.test(ua) && !/OPR\//.test(ua);
-  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
   const hasSpeech =
     typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
-  return isChrome && !isMobile && !!hasSpeech;
+
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+  if (isMobile) {
+    return {
+      ok: false,
+      name: "mobile",
+      message: "You're on a mobile device — please open this page in Google Chrome on a laptop or desktop to continue.",
+    };
+  }
+
+  // Order matters: Edge and Opera include "Chrome/" in their UA, so check them first.
+  if (/Edg\//.test(ua)) {
+    return {
+      ok: false,
+      name: "edge",
+      message: "You're on Microsoft Edge — please switch to Google Chrome on a laptop to continue. Web Speech API is Chrome-only.",
+    };
+  }
+  if (/OPR\//.test(ua) || /Opera/i.test(ua)) {
+    return {
+      ok: false,
+      name: "opera",
+      message: "You're on Opera — please switch to Google Chrome on a laptop to continue. Web Speech API is Chrome-only.",
+    };
+  }
+  if (/Firefox\//.test(ua)) {
+    return {
+      ok: false,
+      name: "firefox",
+      message: "You're on Firefox — please switch to Google Chrome on a laptop to continue. Web Speech API is Chrome-only.",
+    };
+  }
+  if (/Brave\//.test(ua) || (navigator.brave && navigator.brave.isBrave)) {
+    return {
+      ok: false,
+      name: "brave",
+      message: "You're on Brave — please switch to Google Chrome on a laptop. Brave is Chromium-based but blocks the Web Speech API used here.",
+    };
+  }
+  if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) {
+    return {
+      ok: false,
+      name: "safari",
+      message: "You're on Safari — please switch to Google Chrome on a laptop to continue. Web Speech API is Chrome-only.",
+    };
+  }
+
+  const isChrome = /Chrome\//.test(ua);
+  if (!isChrome) {
+    return {
+      ok: false,
+      name: "unknown",
+      message: "Your browser isn't supported. Please open this page in Google Chrome on a laptop or desktop to continue.",
+    };
+  }
+  if (!hasSpeech) {
+    return {
+      ok: false,
+      name: "chrome-no-speech",
+      message: "Your version of Chrome doesn't expose the Web Speech API. Please update Chrome to the latest version.",
+    };
+  }
+
+  return { ok: true, name: "chrome", message: null };
 }
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [browserOk, setBrowserOk] = useState(true);
+  // Lazy-init so detection runs once on mount without an effect — keeps the
+  // assistant out of cascading renders and is correct because navigator.userAgent
+  // is stable for the lifetime of the page.
+  const [browserInfo] = useState(() => detectBrowser());
   const [step, setStep] = useState("intro");
   const [candidateName, setCandidateName] = useState("");
   const [consented, setConsented] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    setBrowserOk(isChromeDesktop());
-  }, []);
+  const browserOk = browserInfo.ok;
 
   const handleNext = () => {
     setError(null);
     if (!browserOk) {
-      setError("Please use Google Chrome on a laptop or desktop.");
+      setError(browserInfo.message);
       return;
     }
     setStep("consent");
   };
 
-  const handleBack = () => {
+  const handleBackToIntro = () => {
     setError(null);
     setStep("intro");
   };
 
-  const handleStart = async () => {
+  const handleConsentNext = () => {
     setError(null);
     if (!browserOk) {
-      setError("Please use Google Chrome on a laptop or desktop.");
+      setError(browserInfo.message);
       return;
     }
     if (!candidateName.trim()) {
@@ -52,22 +122,28 @@ export default function Landing() {
       setError("Please check the consent box to continue.");
       return;
     }
+    setStep("mic-test");
+  };
 
+  const handleBackToConsent = () => {
+    setError(null);
+    setStep("consent");
+  };
+
+  const handleMicTestComplete = async () => {
+    setError(null);
     setStep("preparing");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach((t) => t.stop());
-
+      // Tickle SpeechSynthesis with an empty utterance inside the user-gesture
+      // handler so Chrome doesn't silently block the first real speak() call.
       if (typeof window !== "undefined" && window.speechSynthesis) {
         window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
       }
-
       await new Promise((r) => setTimeout(r, 800));
-
       navigate("/interview", { state: { candidateName: candidateName.trim() } });
     } catch {
-      setError("Please allow microphone access and refresh the page.");
-      setStep("consent");
+      setError("Something went wrong while starting. Please refresh and try again.");
+      setStep("mic-test");
     }
   };
 
@@ -83,8 +159,18 @@ export default function Landing() {
         }}
         error={error}
         browserOk={browserOk}
-        onBack={handleBack}
-        onStart={handleStart}
+        onBack={handleBackToIntro}
+        onNext={handleConsentNext}
+      />
+    );
+  }
+
+  if (step === "mic-test") {
+    return (
+      <MicTestOverlay
+        candidateName={candidateName}
+        onBack={handleBackToConsent}
+        onContinue={handleMicTestComplete}
       />
     );
   }
@@ -93,12 +179,13 @@ export default function Landing() {
     return <PreparingOverlay />;
   }
 
-  return <IntroLanding browserOk={browserOk} onNext={handleNext} />;
+  return <IntroLanding browserInfo={browserInfo} onNext={handleNext} />;
 }
 
 /* ---------------- Intro (marketing landing) ---------------- */
 
-function IntroLanding({ browserOk, onNext }) {
+function IntroLanding({ browserInfo, onNext }) {
+  const browserOk = browserInfo.ok;
   return (
     <div className="landing grid-bg">
       <Link to="/build-story" className="case-study-banner" aria-label="Read the build-story case study">
@@ -160,9 +247,9 @@ function IntroLanding({ browserOk, onNext }) {
           </div>
 
           {!browserOk && (
-            <div className="alert alert-warn" role="alert">
-              Your browser isn't supported. Please open this page in Google Chrome on a laptop
-              or desktop to continue.
+            <div className={`alert alert-warn alert-browser alert-browser-${browserInfo.name}`} role="alert">
+              <span className="alert-browser-icon" aria-hidden="true">⚠</span>
+              <span className="alert-browser-text">{browserInfo.message}</span>
             </div>
           )}
 
@@ -590,13 +677,13 @@ function FaqItem({ q, a }) {
 
 /* ---------------- Consent overlay (step 2) ---------------- */
 
-function ConsentOverlay({ candidateName, setCandidateName, consented, setConsented, error, browserOk, onBack, onStart }) {
+function ConsentOverlay({ candidateName, setCandidateName, consented, setConsented, error, browserOk, onBack, onNext }) {
   return (
     <main className="overlay grid-bg">
       <div className="overlay-card">
-        <span className="eyebrow">Step 2 of 2</span>
+        <span className="eyebrow">Step 2 of 3</span>
         <h1 className="overlay-title">One last thing</h1>
-        <p className="overlay-sub">Please review this before we begin.</p>
+        <p className="overlay-sub">Quick consent, then a 5-second mic check, then we begin.</p>
 
         <div className="candidate-details">
           <label className="input-label" htmlFor="candidateName">Your Name</label>
@@ -646,11 +733,11 @@ function ConsentOverlay({ candidateName, setCandidateName, consented, setConsent
           </button>
           <button
             type="button"
-            onClick={onStart}
+            onClick={onNext}
             disabled={!browserOk || !consented}
             className="btn-primary"
           >
-            Start interview →
+            Continue → mic check
           </button>
         </div>
       </div>
@@ -658,7 +745,152 @@ function ConsentOverlay({ candidateName, setCandidateName, consented, setConsent
   );
 }
 
-/* ---------------- Preparing overlay (step 3) ---------------- */
+/* ---------------- Mic test overlay (step 3) ---------------- */
+
+const MIC_LEVEL_THRESHOLD = 0.04;
+const MIC_SUSTAINED_FRAMES = 6;
+const MIC_TEST_DURATION_MS = 5000;
+
+function MicTestOverlay({ candidateName, onBack, onContinue }) {
+  const { bars, level, ready } = useAudioVisualizer(true);
+  const [heardYou, setHeardYou] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(Math.round(MIC_TEST_DURATION_MS / 1000));
+
+  // Counter for "level above threshold for N consecutive frames". Lives in a
+  // ref because (a) it doesn't drive any UI directly and (b) doing it in state
+  // would mean calling setState inside an effect, which React 19 flags.
+  const sustainedFramesRef = useRef(0);
+
+  // Once mic is ready, give the candidate ~600ms before we even start expecting
+  // them to speak — gives them a chance to read the instructions.
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    if (!ready) return undefined;
+    const t = setTimeout(() => setArmed(true), 600);
+    return () => clearTimeout(t);
+  }, [ready]);
+
+  // Track sustained speech: needs to cross the threshold for several consecutive
+  // frames so a single click/tap doesn't unlock the button.
+  useEffect(() => {
+    if (!armed || heardYou) return;
+    if (level >= MIC_LEVEL_THRESHOLD) {
+      sustainedFramesRef.current += 1;
+      if (sustainedFramesRef.current >= MIC_SUSTAINED_FRAMES) {
+        setHeardYou(true);
+      }
+    } else {
+      sustainedFramesRef.current = 0;
+    }
+  }, [level, armed, heardYou]);
+
+  // Visible countdown — purely reassurance for the candidate.
+  useEffect(() => {
+    if (!armed || heardYou) return undefined;
+    const start = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const left = Math.max(0, Math.round((MIC_TEST_DURATION_MS - elapsed) / 1000));
+      setSecondsLeft(left);
+      if (elapsed >= MIC_TEST_DURATION_MS) clearInterval(interval);
+    }, 200);
+    return () => clearInterval(interval);
+  }, [armed, heardYou]);
+
+  // If permission is silently denied, the hook's `ready` never flips to true.
+  // After 2.5s of waiting, surface a permission alert so the user can recover.
+  useEffect(() => {
+    if (ready) return undefined;
+    const t = setTimeout(() => {
+      if (!ready) setPermissionDenied(true);
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [ready]);
+
+  const barArray = Array.from(bars);
+
+  return (
+    <main className="overlay grid-bg">
+      <div className="overlay-card">
+        <span className="eyebrow">Step 3 of 3</span>
+        <h1 className="overlay-title">
+          {heardYou ? `Great, I can hear you, ${candidateName.split(" ")[0] || "there"}.` : "Quick mic check"}
+        </h1>
+        <p className="overlay-sub">
+          {heardYou
+            ? "You're all set. Click below and Priya will begin."
+            : "Say anything — your name, what you ate today, anything. I just want to confirm the mic is picking you up before we start."}
+        </p>
+
+        <div className="mic-test">
+          <div className={`mic-test-status mic-test-status-${heardYou ? "ok" : armed ? "listening" : "init"}`}>
+            <span className="mic-test-status-dot" aria-hidden="true" />
+            <span className="mic-test-status-text">
+              {permissionDenied
+                ? "Microphone blocked"
+                : !ready
+                  ? "Requesting microphone…"
+                  : heardYou
+                    ? "Mic working perfectly"
+                    : `Listening… ${secondsLeft}s`}
+            </span>
+          </div>
+
+          <div className="mic-test-bars" aria-hidden="true">
+            {barArray.map((b, i) => {
+              const pct = Math.max(6, Math.min(100, (b / 255) * 100));
+              return (
+                <span
+                  key={i}
+                  className="mic-test-bar"
+                  style={{ height: `${pct}%`, opacity: heardYou ? 0.9 : armed ? 1 : 0.5 }}
+                />
+              );
+            })}
+          </div>
+
+          <div className="mic-test-meter">
+            <div
+              className={`mic-test-meter-fill ${heardYou ? "mic-test-meter-fill-ok" : ""}`}
+              style={{ width: `${Math.min(100, level * 220)}%` }}
+            />
+          </div>
+
+          {permissionDenied && (
+            <div className="alert alert-error" role="alert">
+              We can't hear your microphone. Please allow microphone access in the address bar
+              and click Retry, or use the Back button to try again.
+            </div>
+          )}
+
+          {!permissionDenied && !heardYou && armed && secondsLeft === 0 && (
+            <div className="mic-test-hint">
+              Still not picking anything up. Try speaking louder, or check your input device in
+              browser settings — then click Continue once you see the bars react.
+            </div>
+          )}
+        </div>
+
+        <div className="overlay-actions">
+          <button type="button" onClick={onBack} className="btn-secondary">
+            Back
+          </button>
+          <button
+            type="button"
+            onClick={onContinue}
+            disabled={!heardYou && !permissionDenied}
+            className="btn-primary"
+          >
+            {heardYou ? "Start interview →" : "Continue →"}
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+/* ---------------- Preparing overlay (step 4) ---------------- */
 
 function PreparingOverlay() {
   return (

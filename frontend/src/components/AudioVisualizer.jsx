@@ -17,7 +17,13 @@ export default function AudioVisualizer({ active, width = 320, height = 96 }) {
   const canvasRef = useRef(null);
   const { bars, level, ready, barCount } = useAudioVisualizer(active);
   const barsRef = useRef(bars);
-  barsRef.current = bars;
+
+  // Sync the latest bars into the ref outside of render — the rAF loop reads
+  // from the ref so it always sees the freshest frequency data without
+  // needing to re-run the draw effect every frame.
+  useEffect(() => {
+    barsRef.current = bars;
+  }, [bars]);
 
   useEffect(() => {
     if (!active) return undefined;

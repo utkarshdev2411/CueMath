@@ -1,84 +1,246 @@
+/* =========================================================
+   Report page — Cuemath Neo-Brutalist design system
+   ========================================================= */
+
 .report {
-  max-width: 900px;
+  min-height: 100vh;
+  background: #ffffff;
+  padding-bottom: 60px;
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* =========================================================
+   Nav
+   ========================================================= */
+
+.report-nav {
+  background: #ffffff;
+  border-bottom: 2px solid var(--border);
+}
+
+.report-nav-inner {
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 40px 24px 80px;
-  background: var(--bg);
-}
-
-.report-empty {
-  max-width: 500px;
-  margin: 80px auto;
-  text-align: center;
-  padding: 24px;
-}
-
-.report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 28px;
-}
-
-.report-title-eyebrow {
-  font-size: 13px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.report-header h1 {
-  font-size: 32px;
-  margin: 0;
-}
-
-.report-date {
-  font-size: 14px;
-  color: var(--text-muted);
-  margin-top: 4px;
-}
-
-.report-print {
-  padding: 10px 20px;
-  font-size: 14px;
-}
-
-.report-verdict {
+  padding: 14px 24px;
   display: flex;
   align-items: center;
+  gap: 14px;
+}
+
+.nav-logo {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.nav-divider {
+  width: 2px;
+  height: 22px;
+  background: var(--border);
+  border-radius: 1px;
+}
+
+.report-nav-session {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.report-nav-label {
+  font-weight: 600;
+}
+
+.report-nav-name {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* =========================================================
+   Shell
+   ========================================================= */
+
+.report-shell {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
   gap: 28px;
-  margin-bottom: 36px;
-  padding: 28px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+}
+
+.eyebrow {
+  display: inline-block;
+  font-family: "Inter", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8b6914;
+  background: var(--cream);
+  padding: 5px 11px;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 var(--border);
+  margin-bottom: 12px;
+}
+
+/* =========================================================
+   Hero (candidate name + date + action buttons)
+   ========================================================= */
+
+.report-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.report-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: clamp(32px, 4.5vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.report-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.meta-sep {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.report-hero-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Shared button primitives */
+
+.btn-primary,
+.btn-secondary {
+  font-family: "Poppins", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 20px;
+  border: 2px solid var(--border);
   border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--border);
+  opacity: 1;
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 var(--border);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--cream);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--border);
+  opacity: 1;
+}
+
+.btn-compact {
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+
+/* =========================================================
+   Verdict card — hero section with radar chart
+   ========================================================= */
+
+.verdict-card {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  gap: 32px;
+  align-items: center;
+  padding: 32px;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+}
+
+.verdict-card.verdict-pass   { background: var(--mint); }
+.verdict-card.verdict-review { background: var(--cream); }
+.verdict-card.verdict-reject { background: var(--salmon); }
+
+.verdict-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
 }
 
 .verdict-badge {
-  padding: 10px 28px;
-  border-radius: 999px;
-  font-size: 18px;
+  font-family: "Poppins", sans-serif;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 18px;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 3px 3px 0 var(--border);
+  background: #ffffff;
+  color: var(--text);
 }
 
-.verdict-pass {
-  background: var(--success-bg);
-  color: var(--success);
-}
-
-.verdict-review {
-  background: var(--warn-bg);
-  color: var(--warn);
-}
-
-.verdict-reject {
-  background: var(--danger-bg);
-  color: var(--danger);
-}
+.verdict-badge.verdict-pass   { background: #ffffff; color: #1a5c2a; }
+.verdict-badge.verdict-review { background: #ffffff; color: #8b6914; }
+.verdict-badge.verdict-reject { background: #ffffff; color: #8b1a1a; }
 
 .verdict-score {
   display: flex;
@@ -87,68 +249,271 @@
 }
 
 .verdict-score-num {
-  font-size: 44px;
+  font-family: "JetBrains Mono", monospace;
   font-weight: 700;
+  font-size: clamp(52px, 8vw, 72px);
+  line-height: 1;
   color: var(--text);
+  letter-spacing: -0.02em;
 }
 
 .verdict-score-den {
-  font-size: 18px;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 500;
+  font-size: 20px;
   color: var(--text-muted);
 }
 
-.report-summary,
-.report-rubrics,
-.report-flags,
-.report-recommendation {
-  margin-bottom: 32px;
+.verdict-blurb {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.35;
+  color: var(--text);
+  max-width: 360px;
 }
 
-.report-summary p,
-.report-recommendation p {
-  line-height: 1.6;
+.verdict-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================================================
+   Sections
+   ========================================================= */
+
+.report-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
   margin: 0;
 }
+
+.section-sub {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: -4px 0 8px;
+}
+
+/* Summary + recommendation cards — clean white with hard shadow */
+
+.summary-card,
+.recommendation-card {
+  background: #ffffff;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  padding: 22px 24px;
+}
+
+.summary-card p,
+.recommendation-card p {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+/* Dimensions grid */
 
 .rubric-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 18px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 720px) {
   .rubric-grid {
     grid-template-columns: 1fr;
   }
 }
 
-.report-flags ul {
-  background: var(--danger-bg);
-  color: var(--danger);
-  border-radius: 12px;
-  padding: 16px 16px 16px 36px;
+/* Red flags card */
+
+.flags-card {
+  background: var(--pink);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  padding: 20px 24px;
+}
+
+.flags-card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flags-card li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #4a1a1a;
+}
+
+.flags-card li svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* =========================================================
+   Footer CTA band (yellow)
+   ========================================================= */
+
+.report-footer-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 32px;
+  background: var(--accent);
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  flex-wrap: wrap;
+}
+
+.cta-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.2;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.cta-sub {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  color: #3a3a3a;
   margin: 0;
 }
 
-.report-flags li {
-  margin: 6px 0;
+.report-footer-cta .btn-primary {
+  background: #1a1a1a;
+  color: var(--accent);
+  box-shadow: 4px 4px 0 #ffffff;
 }
 
-@media print {
-  .report-print {
-    display: none;
-  }
+.report-footer-cta .btn-primary:hover:not(:disabled) {
+  background: #000;
+}
 
+/* =========================================================
+   Empty state
+   ========================================================= */
+
+.report-empty {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background-color: var(--cream);
+}
+
+.report-empty-card {
+  background: #ffffff;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  padding: 40px 36px;
+  max-width: 480px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.report-empty-card h2 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  margin: 0;
+}
+
+.report-empty-card p {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .verdict-card {
+    grid-template-columns: 1fr;
+    text-align: left;
+    padding: 24px;
+  }
+  .verdict-right {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .report-nav-inner { padding: 12px 16px; }
+  .report-nav-label { display: none; }
+  .report-shell { padding: 24px 16px; gap: 22px; }
+  .report-hero { flex-direction: column; align-items: flex-start; }
+  .report-hero-actions { width: 100%; }
+  .report-hero-actions .btn-primary,
+  .report-hero-actions .btn-secondary { flex: 1; justify-content: center; }
+  .verdict-card { padding: 20px; }
+  .report-footer-cta { flex-direction: column; align-items: flex-start; padding: 22px; }
+  .report-footer-cta .btn-primary { width: 100%; justify-content: center; }
+}
+
+/* =========================================================
+   Print styles
+   ========================================================= */
+
+@media print {
   .report {
+    background: #ffffff !important;
     padding: 0;
   }
-
-  body {
-    background: #fff;
+  .report-nav,
+  .report-hero-actions,
+  .report-footer-cta {
+    display: none !important;
+  }
+  .grid-bg {
+    background-image: none !important;
+  }
+  .report-shell {
+    padding: 0;
+    gap: 16px;
+  }
+  .verdict-card,
+  .summary-card,
+  .recommendation-card,
+  .flags-card,
+  .rubric-card {
+    box-shadow: none !important;
+    break-inside: avoid;
   }
 }

@@ -136,6 +136,17 @@ function IntroLanding({ browserOk, onNext }) {
         </div>
       </section>
 
+      <section className="stats-section">
+        <div className="section-inner">
+          <div className="stats-row">
+            <StatItem number="10,000+" label="Tutors Screened" />
+            <StatItem number="4.9/5" label="Candidate Rating" />
+            <StatItem number="5 min" label="Average Duration" />
+            <StatItem number="100%" label="Unbiased AI" />
+          </div>
+        </div>
+      </section>
+
       <section id="how-it-works" className="section section-white">
         <div className="section-inner">
           <span className="eyebrow eyebrow-muted">How it works</span>

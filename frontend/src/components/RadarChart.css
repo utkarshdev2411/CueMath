@@ -1,0 +1,85 @@
+.radar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.radar-svg {
+  display: block;
+  overflow: visible;
+}
+
+/* Grid rings — outermost is bold, inner rings fade */
+.radar-ring {
+  fill: #ffffff;
+  stroke: #1a1a1a;
+  stroke-width: 1;
+  opacity: 0.35;
+}
+.radar-ring-1 { opacity: 0.2; }
+.radar-ring-2 { opacity: 0.25; }
+.radar-ring-3 { opacity: 0.3; }
+.radar-ring-4 { opacity: 0.35; }
+.radar-ring-5 {
+  opacity: 1;
+  stroke-width: 2;
+  fill: none;
+}
+
+/* Inner rings need no fill so the polygon is visible */
+.radar-ring-1,
+.radar-ring-2,
+.radar-ring-3,
+.radar-ring-4 {
+  fill: none;
+}
+
+.radar-spoke {
+  stroke: #1a1a1a;
+  stroke-width: 1.5;
+  opacity: 0.35;
+}
+
+/* Candidate polygon — Cuemath yellow with a bold black outline */
+.radar-polygon {
+  fill: rgba(250, 192, 46, 0.45);
+  stroke: #1a1a1a;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  animation: radarDraw 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hard offset shadow of the polygon (neo-brutalist) */
+.radar-polygon-shadow {
+  fill: #1a1a1a;
+  stroke: none;
+  opacity: 0.18;
+}
+
+.radar-vertex {
+  fill: #fac02e;
+  stroke: #1a1a1a;
+  stroke-width: 2;
+}
+
+@keyframes radarDraw {
+  from { transform: scale(0.6); transform-origin: center; opacity: 0; }
+  to   { transform: scale(1); transform-origin: center; opacity: 1; }
+}
+
+/* Axis labels */
+.radar-label {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  fill: #1a1a1a;
+  letter-spacing: 0.01em;
+}
+
+.radar-label-score {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: 11px;
+  fill: #8b6914;
+}

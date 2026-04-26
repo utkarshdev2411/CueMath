@@ -42,7 +42,7 @@ export default function StatusIndicator({ phase }) {
       </div>
 
       <div className="status-visual">
-        {isListening && <AudioVisualizer active width={260} height={72} />}
+        {isListening && <AudioVisualizer active width={130} height={48} />}
         {(phase === "PROCESSING" || phase === "ASSESSING") && (
           <div className="status-spinner" aria-hidden="true" />
         )}

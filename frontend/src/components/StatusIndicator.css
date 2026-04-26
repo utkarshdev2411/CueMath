@@ -1,10 +1,10 @@
 .status-indicator {
   width: 100%;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 14px 18px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  padding: 16px;
   background: #ffffff;
   border: 2px solid var(--border);
   border-radius: 16px;
@@ -110,7 +110,7 @@
 .status-visual {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-width: 88px;
   flex-shrink: 0;
 }

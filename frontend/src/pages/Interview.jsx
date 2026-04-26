@@ -98,37 +98,6 @@ export default function Interview() {
         {/* ---- Left Sidebar ---- */}
         <aside className="sidebar sidebar-left">
           <StatusIndicator phase={phase} />
-
-          <div className="sidebar-card sidebar-info">
-            <div className="sidebar-card-head">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
-              <span>Tips</span>
-            </div>
-            <ul className="sidebar-tips">
-              <li>Speak naturally at your own pace</li>
-              <li>Use examples when explaining</li>
-              <li>Pauses are OK — Priya waits</li>
-              <li>Think of a real student scenario</li>
-            </ul>
-          </div>
-
-          <div className="sidebar-card sidebar-progress-card">
-            <div className="sidebar-card-head">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
-              <span>Progress</span>
-            </div>
-            <div className="sidebar-progress-dots">
-              {Array.from({ length: MAX_TURNS }).map((_, i) => {
-                const n = i + 1;
-                const state = n < displayedTurn ? "done" : n === displayedTurn ? "active" : "pending";
-                return (
-                  <div key={i} className={`sp-dot sp-dot-${state}`}>
-                    <span className="sp-dot-num">{n}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </aside>
 
         {/* ---- Center: Transcript ---- */}
@@ -178,10 +147,6 @@ export default function Interview() {
               <span className={`status-pill pill-${footerPillVariant(phase)}`}>
                 {footerPillLabel(phase)}
               </span>
-              <span className="footer-sep" aria-hidden="true">·</span>
-              <span className="footer-timer" aria-label={`Elapsed time ${elapsedLabel}`}>
-                <ClockIcon /> {elapsedLabel}
-              </span>
             </div>
             {error && (
               <div className="interview-error" role="alert">
@@ -196,20 +161,6 @@ export default function Interview() {
 
         {/* ---- Right Sidebar ---- */}
         <aside className="sidebar sidebar-right">
-          <div className="sidebar-card sidebar-rubric">
-            <div className="sidebar-card-head">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
-              <span>What we assess</span>
-            </div>
-            <div className="rubric-mini-list">
-              <span className="rubric-mini rubric-m-mint">Clarity</span>
-              <span className="rubric-mini rubric-m-lavender">Simplification</span>
-              <span className="rubric-mini rubric-m-salmon">Warmth</span>
-              <span className="rubric-mini rubric-m-sky">Patience</span>
-              <span className="rubric-mini rubric-m-pink">Fluency</span>
-            </div>
-          </div>
-
           <div className="sidebar-card sidebar-ai-note">
             <div className="sidebar-card-head">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
@@ -218,14 +169,6 @@ export default function Interview() {
             <p className="sidebar-note-text">
               You're speaking with <strong>Priya</strong>, an AI interviewer. A human recruiter reviews every assessment.
             </p>
-          </div>
-
-          <div className="sidebar-card sidebar-timer-card">
-            <div className="sidebar-timer-big">
-              <ClockIcon />
-              <span className="sidebar-timer-num">{elapsedLabel}</span>
-            </div>
-            <div className="sidebar-timer-label">Elapsed time</div>
           </div>
         </aside>
       </div>

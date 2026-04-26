@@ -161,13 +161,18 @@ export function useInterview() {
     [speech, listenForCandidate],
   );
 
-  // Once we hit COMPLETE, fire the assessment call.
+  // Once we hit COMPLETE, we transition to ASSESSING and fire the assessment call.
   useEffect(() => {
-    if (state.phase !== "COMPLETE") return;
+    if (state.phase === "COMPLETE") {
+      dispatch({ type: "SET_PHASE", phase: "ASSESSING" });
+    }
+  }, [state.phase]);
+
+  useEffect(() => {
+    if (state.phase !== "ASSESSING") return;
 
     let cancelled = false;
     (async () => {
-      dispatch({ type: "SET_PHASE", phase: "ASSESSING" });
       try {
         const report = await postAssess(
           stateRef.current.messages,

@@ -112,6 +112,11 @@ Phase 5 — Polish (only after live URL works)
 - Added "Copy link" button (link icon) to `report-hero-actions` — only shown when a URL ID is present. Copies `window.location.href` to clipboard.
 - `/report/:id` route was already wired in `App.jsx` from the previous session.
 
+### Point 3 — README Design Decisions (next-steps.md)
+- Created `README.md` at the root of the project.
+- Wrote a ~400-word "Design Decisions" section detailing the architectural rationale.
+- Addressed: Web Speech API vs Whisper, stateless backend, 7-turn limit, BARS-anchored rubric, token limit management, and future improvements (WebSockets, Vector DB).
+
 ## Session log — 2026-04-26 (update 3)
 
 ### Back button consistency

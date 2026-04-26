@@ -48,6 +48,25 @@
   border-radius: 1px;
 }
 
+.report-nav-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+
+.report-nav-back:hover {
+  color: var(--text);
+}
+
 .report-nav-session {
   display: flex;
   align-items: center;

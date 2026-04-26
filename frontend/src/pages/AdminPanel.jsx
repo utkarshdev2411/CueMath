@@ -1,9 +1,16 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AdminBanner from "../components/AdminBanner";
 import { candidates as seedCandidates } from "../data/candidates";
 import "./AdminPanel.css";
 
 const FILTERS = ["All", "Pass", "Review", "Reject"];
+const SORT_OPTIONS = [
+  { value: "date_desc", label: "Newest first" },
+  { value: "date_asc",  label: "Oldest first" },
+  { value: "score_desc", label: "Score: high → low" },
+  { value: "score_asc",  label: "Score: low → high" },
+];
 
 function loadRealInterviews() {
   try {
@@ -57,21 +64,36 @@ function calcStats(list) {
 export default function AdminPanel() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState("All");
+  const [sortKey, setSortKey] = useState("date_desc");
+  const [search, setSearch] = useState("");
 
   const allCandidates = useMemo(() => {
     const real = loadRealInterviews().map(normalise);
     const seed = seedCandidates.map(normalise);
-    const combined = [...real, ...seed];
-    combined.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-    return combined;
+    return [...real, ...seed];
   }, []);
 
   const filtered = useMemo(() => {
-    if (activeFilter === "All") return allCandidates;
-    return allCandidates.filter(
-      (c) => c.verdict === activeFilter.toLowerCase(),
-    );
-  }, [allCandidates, activeFilter]);
+    let list = activeFilter === "All"
+      ? allCandidates
+      : allCandidates.filter((c) => c.verdict === activeFilter.toLowerCase());
+
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((c) => c.name.toLowerCase().includes(q));
+    }
+
+    list = [...list].sort((a, b) => {
+      switch (sortKey) {
+        case "date_asc":   return (a.date || "").localeCompare(b.date || "");
+        case "score_desc": return (Number(b.weighted_score) || 0) - (Number(a.weighted_score) || 0);
+        case "score_asc":  return (Number(a.weighted_score) || 0) - (Number(b.weighted_score) || 0);
+        default:           return (b.date || "").localeCompare(a.date || ""); // date_desc
+      }
+    });
+
+    return list;
+  }, [allCandidates, activeFilter, sortKey, search]);
 
   const stats = useMemo(() => calcStats(allCandidates), [allCandidates]);
 
@@ -102,6 +124,7 @@ export default function AdminPanel() {
 
   return (
     <main className="admin grid-bg">
+      <AdminBanner />
       <AdminNav />
 
       <div className="admin-shell">
@@ -140,6 +163,44 @@ export default function AdminPanel() {
               </span>
             </button>
           ))}
+        </div>
+
+        <div className="admin-toolbar">
+          <div className="search-wrap">
+            <SearchIcon />
+            <input
+              type="search"
+              className="search-input"
+              placeholder="Search by name…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search candidates by name"
+            />
+            {search && (
+              <button
+                type="button"
+                className="search-clear"
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          <div className="sort-wrap">
+            <SortIcon />
+            <select
+              className="sort-select"
+              value={sortKey}
+              onChange={(e) => setSortKey(e.target.value)}
+              aria-label="Sort candidates"
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {filtered.length === 0 ? (
@@ -227,6 +288,10 @@ function AdminNav() {
   return (
     <header className="admin-nav">
       <div className="admin-nav-inner">
+        <a href="/" className="admin-nav-back">
+          <BackNavIcon /> Back
+        </a>
+        <span className="nav-divider" aria-hidden="true" />
         <a href="/" className="nav-logo">Cuemath</a>
         <span className="nav-divider" aria-hidden="true" />
         <span className="admin-nav-label">HR Dashboard</span>
@@ -235,21 +300,39 @@ function AdminNav() {
   );
 }
 
+function BackNavIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
+    </svg>
+  );
+}
+
 function ArrowIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      width="14"
-      height="14"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <line x1="5" y1="12" x2="19" y2="12" />
       <polyline points="12 5 19 12 12 19" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
+function SortIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="6" y1="12" x2="18" y2="12" />
+      <line x1="9" y1="18" x2="15" y2="18" />
     </svg>
   );
 }

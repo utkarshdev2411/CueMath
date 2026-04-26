@@ -101,6 +101,21 @@ Phase 5 — Polish (only after live URL works)
 
 ---
 
+## Session log — 2026-04-26 (update 3)
+
+### Back button consistency
+- `AdminPanel.jsx` / `AdminPanel.css` — added Back button to the `AdminNav` header bar (same position and style as Report page), links to `/`. Removed "← Back to candidate view" link from `AdminBanner` — navigation is now handled entirely by the nav bar.
+- `AdminBanner` simplified: now a single-row pill + message strip with no action links.
+
+## Session log — 2026-04-26 (update 2)
+
+### Admin panel polish + Landing page HR section
+- `Landing.jsx` — added "Admin Panel" link to navbar; added "HR Tools" section (`#hr-tools`) with 3 cards linking to `/admin`, a sample report, and the rubric.
+- Created `src/components/AdminBanner.jsx` + `AdminBanner.css` — sticky dark top banner for all admin pages explaining login is skipped for the demo. Matches the existing `top-banner` style from Landing.
+- `AdminPanel.jsx` — added `AdminBanner` at the top.
+- `Report.jsx` — added Back button in `report-hero-actions`; navigates to previous history entry or `/admin` if no history.
+- `AdminPanel.jsx` — added search bar (filter by candidate name) and sort dropdown (Newest first / Oldest first / Score high→low / Score low→high). Both work on the already-merged real + seed list.
+
 ## Session log — 2026-04-26
 
 ### Admin / HR Dashboard (next-steps.md item 1)

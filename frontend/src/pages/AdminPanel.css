@@ -26,6 +26,23 @@
   gap: 14px;
 }
 
+.admin-nav-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+
+.admin-nav-back:hover {
+  color: var(--text);
+}
+
 .admin-nav-label {
   font-family: "Inter", sans-serif;
   font-size: 14px;
@@ -178,18 +195,119 @@
   font-family: "JetBrains Mono", monospace;
   font-size: 12px;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.2);
   border-radius: 999px;
   padding: 1px 7px;
 }
 
-.filter-tab-active .filter-count {
-  background: rgba(255, 255, 255, 0.18);
+/* Unselected pill is light → badge is dark */
+.filter-tab:not(.filter-tab-active) .filter-count {
+  background: var(--text);
+  color: #ffffff;
 }
 
-.filter-tab:not(.filter-tab-active) .filter-count {
-  background: var(--border);
+/* Selected pill is dark → badge is light */
+.filter-tab-active .filter-count {
+  background: #ffffff;
+  color: var(--text);
+}
+
+/* =========================================================
+   Search + Sort toolbar
+   ========================================================= */
+
+.admin-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-wrap svg {
+  position: absolute;
+  left: 12px;
   color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 36px 10px 36px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: #ffffff;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s;
+  appearance: none;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-clear {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 4px;
+}
+
+.search-clear:hover {
+  color: var(--text);
+}
+
+.sort-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.sort-wrap svg {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.sort-select {
+  padding: 10px 14px 10px 36px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+  background: #ffffff;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  appearance: none;
+  transition: border-color 0.15s;
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 /* =========================================================

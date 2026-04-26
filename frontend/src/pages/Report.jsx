@@ -85,6 +85,14 @@ export default function Report() {
   const navigate = useNavigate();
   const { report, candidateName, transcript, elapsedSeconds } = location.state || {};
 
+  const handleBack = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/admin");
+    }
+  };
+
   const today = useMemo(
     () =>
       new Date().toLocaleDateString(undefined, {
@@ -132,7 +140,7 @@ export default function Report() {
 
   return (
     <main className="report grid-bg">
-      <ReportNav candidateName={name} />
+      <ReportNav candidateName={name} onBack={handleBack} />
 
       <div className="report-shell">
         <section className="report-hero">
@@ -257,10 +265,14 @@ export default function Report() {
 
 /* ---------------- Sub-components ---------------- */
 
-function ReportNav({ candidateName }) {
+function ReportNav({ candidateName, onBack }) {
   return (
     <header className="report-nav">
       <div className="report-nav-inner">
+        <button type="button" className="report-nav-back" onClick={onBack} aria-label="Go back">
+          <BackIcon /> Back
+        </button>
+        <span className="nav-divider" aria-hidden="true" />
         <div className="nav-logo">Cuemath</div>
         <span className="nav-divider" aria-hidden="true" />
         <div className="report-nav-session">
@@ -269,6 +281,15 @@ function ReportNav({ candidateName }) {
         </div>
       </div>
     </header>
+  );
+}
+
+function BackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
+    </svg>
   );
 }
 

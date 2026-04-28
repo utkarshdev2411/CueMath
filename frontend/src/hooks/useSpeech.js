@@ -165,16 +165,20 @@ export function useSpeech() {
 
     // Accumulates all isFinal chunks within one listening session.
     let finalBuffer = "";
+    // Tracks the most recent interim text so we don't lose it if aborted.
+    let interimBuffer = "";
     // Flag to prevent double-submission if both timer and onend fire.
     let submitted = false;
 
     const submitBuffer = (recognition) => {
-      console.log("[useSpeech] submitBuffer called. submitted:", submitted, "text length:", finalBuffer.length);
+      console.log("[useSpeech] submitBuffer called. submitted:", submitted, "final:", finalBuffer.length, "interim:", interimBuffer.length);
       if (submitted) return;
       submitted = true;
       clearTimeout(silenceTimerRef.current);
       clearTimeout(promptTimerRef.current);
-      const text = finalBuffer.trim();
+      // If we abort before Chrome marks the last phrase as final, we MUST
+      // include the interimBuffer or we lose their last 4 seconds of speech!
+      const text = (finalBuffer + " " + interimBuffer).trim();
       console.log("[useSpeech] submitBuffer text:", text);
       recognition.abort(); // Stop the continuous session cleanly.
       if (text) {
@@ -215,16 +219,28 @@ export function useSpeech() {
     };
 
     recognition.onresult = (event) => {
-      console.log("[useSpeech] recognition.onresult. index:", event.resultIndex, "length:", event.results.length);
+      console.log(`[useSpeech] onresult. index: ${event.resultIndex} length: ${event.results.length}`);
+      
+      let final = "";
       let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+      
+      for (let i = 0; i < event.results.length; i += 1) {
         const result = event.results[i];
-        if (result.isFinal) {
-          finalBuffer += result[0].transcript;
+        const transcript = result[0].transcript;
+        const isFinal = result.isFinal;
+        
+        console.log(`  -> result[${i}] final=${isFinal}: "${transcript}"`);
+        
+        if (isFinal) {
+          final += transcript;
         } else {
-          interim += result[0].transcript;
+          interim += transcript;
         }
       }
+      
+      finalBuffer = final;
+      interimBuffer = interim;
+      
       // Show the live running transcript (committed + current interim).
       setTranscript((finalBuffer + interim).trim());
       // User has started speaking — cancel the "please speak" prompt timer.

@@ -140,14 +140,20 @@ export function useSpeech() {
 
     // Always destroy any previous instance — non-continuous mode requires fresh.
     if (recognitionRef.current) {
+      console.log("[useSpeech] Destroying previous recognition instance");
       try {
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
         recognitionRef.current.abort();
-      } catch {
-        // ignore
+      } catch (err) {
+        console.error("[useSpeech] Error aborting previous recognition:", err);
       }
       recognitionRef.current = null;
     }
 
+    console.log("[useSpeech] Creating new SpeechRecognition instance");
     const recognition = new SR();
     // continuous=true: Chrome will NOT auto-stop on short pauses.
     // We control submission ourselves via a silence timer (SUBMIT_SILENCE_MS).
@@ -163,16 +169,20 @@ export function useSpeech() {
     let submitted = false;
 
     const submitBuffer = (recognition) => {
+      console.log("[useSpeech] submitBuffer called. submitted:", submitted, "text length:", finalBuffer.length);
       if (submitted) return;
       submitted = true;
       clearTimeout(silenceTimerRef.current);
+      clearTimeout(promptTimerRef.current);
       const text = finalBuffer.trim();
+      console.log("[useSpeech] submitBuffer text:", text);
       recognition.abort(); // Stop the continuous session cleanly.
       if (text) {
         globalNetworkFailuresRef.current = 0;
         setTranscript(text);
         if (onTranscriptReadyRef.current) onTranscriptReadyRef.current(text);
       } else {
+        console.log("[useSpeech] submitBuffer empty text, treating as silence");
         // Nothing was said — treat as silence.
         if (onSilenceRef.current) onSilenceRef.current();
       }
@@ -184,6 +194,7 @@ export function useSpeech() {
     };
 
     recognition.onstart = () => {
+      console.log("[useSpeech] recognition.onstart");
       setIsListening(true);
       setTranscript("");
       setError(null);
@@ -204,6 +215,7 @@ export function useSpeech() {
     };
 
     recognition.onresult = (event) => {
+      console.log("[useSpeech] recognition.onresult. index:", event.resultIndex, "length:", event.results.length);
       let interim = "";
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
         const result = event.results[i];
@@ -223,6 +235,7 @@ export function useSpeech() {
 
     recognition.onerror = (event) => {
       const code = event.error;
+      console.error("[useSpeech] recognition.onerror. code:", code);
       if (code === "network") {
         // Chrome's speech recognition requires a live connection to
         // speech.googleapis.com. On Ubuntu/Linux this frequently fails due to
@@ -285,9 +298,15 @@ export function useSpeech() {
     // With continuous=true, onend only fires when we call abort().
     // It just cleans up the isListening flag.
     recognition.onend = () => {
+      console.log("[useSpeech] recognition.onend. submitted:", submitted);
       clearTimeout(silenceTimerRef.current);
       clearTimeout(promptTimerRef.current);
       setIsListening(false);
+      
+      if (!submitted) {
+        console.log("[useSpeech] onend fired without submission. Recovering race condition...");
+        submitBuffer(recognition);
+      }
     };
 
     recognitionRef.current = recognition;

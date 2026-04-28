@@ -44,6 +44,8 @@ function reducer(state, action) {
       return { ...state, phase: action.phase };
     case "SET_ERROR":
       return { ...state, phase: "IDLE", error: action.error };
+    case "SET_TRANSIENT_ERROR":
+      return { ...state, error: action.error };
     case "APPEND_ASSISTANT": {
       const messages = [...state.messages, { role: "assistant", content: action.content }];
       return { ...state, messages, windowMessages: windowOf(messages) };
@@ -92,15 +94,18 @@ export function useInterview(initialCandidateName = null) {
 
   // Forward-declared so the intro callback can reference it.
   const listenForCandidate = useCallback(() => {
+    console.log("[useInterview] listenForCandidate called");
     dispatch({ type: "SET_PHASE", phase: "LISTENING" });
 
     speech.startListening({
       onTranscriptReady: (finalText) => {
+        console.log("[useInterview] onTranscriptReady:", finalText);
         if (!finalText) return;
         silenceStreakRef.current = 0; // Candidate spoke — reset the streak.
         handleCandidateUtterance(finalText);
       },
       onSilence: () => {
+        console.log("[useInterview] onSilence trigger. Streak:", silenceStreakRef.current);
         // The candidate said nothing for PROMPT_SILENCE_MS.
         // Speak a gentle nudge before restarting the mic so Priya
         // prompts them verbally. mic is already stopped at this point
@@ -127,6 +132,7 @@ export function useInterview(initialCandidateName = null) {
 
   const handleCandidateUtterance = useCallback(
     async (finalText) => {
+      console.log("[useInterview] handleCandidateUtterance:", finalText);
       dispatch({ type: "APPEND_USER", content: finalText });
       dispatch({ type: "SET_PHASE", phase: "PROCESSING" });
 
@@ -141,10 +147,19 @@ export function useInterview(initialCandidateName = null) {
 
       let response;
       try {
+        console.log("[useInterview] calling postChat with turnCount:", turnCount);
         response = await postChat(windowMessages, turnCount);
+        console.log("[useInterview] postChat success");
       } catch (err) {
+        console.error("[useInterview] postChat failed:", err);
         const detail = err?.response?.data?.detail || "Something went wrong. Please try again.";
-        dispatch({ type: "SET_ERROR", error: detail });
+        dispatch({ type: "SET_TRANSIENT_ERROR", error: detail });
+        dispatch({ type: "SET_PHASE", phase: "SPEAKING" });
+        
+        console.log("[useInterview] Recovering from error: prompting candidate to repeat");
+        speech.speak("I'm sorry, I had a brief connection drop. Could you please repeat your answer?", () => {
+          listenForCandidate();
+        });
         return;
       }
 
@@ -198,6 +213,7 @@ export function useInterview(initialCandidateName = null) {
   }, [state.phase]);
 
   const startInterview = useCallback(() => {
+    console.log("[useInterview] startInterview called, current phase:", stateRef.current.phase);
     if (stateRef.current.phase !== "IDLE") return;
 
     dispatch({ type: "SET_PHASE", phase: "INTRO" });
